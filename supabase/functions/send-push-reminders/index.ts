@@ -6,6 +6,7 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
+import { deliveryKey, getJakartaSchedule } from '../_shared/push-reminder.ts';
 
 type PushSubscriptionRecord = {
   endpoint: string;
@@ -15,17 +16,6 @@ type PushSubscriptionRecord = {
 function getSecretKey() {
   const secretKeys = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') || '{}') as Record<string, string>;
   return secretKeys.default || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-}
-
-function jakartaNow() {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-  }).formatToParts(new Date()).reduce<Record<string, string>>((result, part) => {
-    result[part.type] = part.value;
-    return result;
-  }, {});
-  return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
 }
 
 function notificationPayload(studentName: string, category: string) {
@@ -52,7 +42,7 @@ Deno.serve(async (request) => {
 
   webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, secretKey);
-  const { date, time } = jakartaNow();
+  const { date, time } = getJakartaSchedule(new Date());
   const { data: cases, error: casesError } = await supabase
     .from('kasus_records')
     .select('id, student_name, category, user_id')
@@ -85,7 +75,10 @@ Deno.serve(async (request) => {
         const { error: deliveryError } = await supabase.from('push_notification_deliveries').insert({
           kasus_id: kasus.id, endpoint: item.endpoint, scheduled_date: date, scheduled_time: time,
         });
-        if (!deliveryError) sent += 1;
+        if (!deliveryError) {
+          console.log(`Delivered ${deliveryKey(kasus.id, item.endpoint, date, time)}`);
+          sent += 1;
+        }
       } catch (error) {
         const statusCode = (error as { statusCode?: number }).statusCode;
         if (statusCode === 404 || statusCode === 410) {
