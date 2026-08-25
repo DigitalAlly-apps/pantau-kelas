@@ -18,23 +18,9 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      // Service Worker akan di-generate otomatis oleh workbox
-      workbox: {
-        // Cache semua asset app shell
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        // Strategi: cache-first untuk asset statis, network-first untuk navigasi
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-cache",
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
-      },
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       manifest: {
         name: "Pantau Kelas",
         short_name: "Pantau Kelas",
