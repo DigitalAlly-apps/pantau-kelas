@@ -24,8 +24,8 @@ import { PantauKelasLogo } from '@/components/PantauKelasLogo';
 
 const NAV_ITEMS: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'home',      label: 'Beranda',          icon: LayoutDashboard },
-  { id: 'aktivitas', label: 'Aktivitas',        icon: Activity },
-  { id: 'laporan',   label: 'Laporan',          icon: BarChart3 },
+  { id: 'aktivitas', label: 'Absensi & Jurnal', icon: Activity },
+  { id: 'laporan',   label: 'Pantauan & Laporan', icon: BarChart3 },
 ];
 
 export function AppSidebar() {

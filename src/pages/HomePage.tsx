@@ -3,12 +3,19 @@ import { useApp } from '@/context/AppContext';
 import { AbsensiGapWidget } from '@/components/AbsensiGapWidget';
 import { AlertCircle, AlertTriangle, ArrowRight, Bell, BookOpen, Calendar, CheckCircle2, ClipboardCheck, FileWarning, Users, UserX } from 'lucide-react';
 
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function HomePage() {
   const { kelasList, activeKelas, absenRecords, kasusRecords, liburDates, namaGuru, semester, lastBackupDate, setActiveTab, setActivityView, setActiveStudentId } = useApp();
   const handleGoToAbsen = useCallback((date: string) => { sessionStorage.setItem('jg_absen_target_date', date); setActivityView('absen'); }, [setActivityView]);
   const kelas = kelasList.find(k => k.id === activeKelas);
   const jenjangAktif = kelas?.jenjang || 'SMP';
-  const today = new Date().toISOString().split('T')[0];
+  const today = localDateKey();
   const todayLibur = liburDates.find(l => l.date === today && l.jenjang === jenjangAktif);
   const todayAbsen = absenRecords.filter(a => a.date === today && a.kelasId === activeKelas);
   const totalStudents = kelas?.students.length || 0;
@@ -28,7 +35,7 @@ export function HomePage() {
   if (!kelas) return <div className="mx-auto flex min-h-[70vh] max-w-3xl items-center justify-center"><div className="card-soft w-full max-w-lg text-center"><div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-light"><Users className="h-8 w-8 text-primary" /></div><p className="label-upper">Mulai dari sini</p><h1 className="mt-2 text-2xl font-bold text-foreground">Belum ada kelas</h1><p className="mt-2 text-sm text-text-secondary">Tambahkan kelas dan daftar siswa untuk mulai mencatat absensi.</p><button onClick={() => setActiveTab('siswa')} className="btn-soft btn-primary-soft mt-6 w-full"><Users className="h-4 w-4" /> Kelola Data Kelas</button></div></div>;
 
   return <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 pb-10">
-    <section className="flex flex-col gap-4 rounded-3xl bg-primary p-5 text-primary-foreground shadow-soft-md md:flex-row md:items-center md:justify-between md:p-7"><div><p className="text-sm font-medium opacity-80">{new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p><h1 className="mt-1 text-2xl font-bold md:text-3xl">Halo, {greeting} 👋</h1><p className="mt-2 text-sm opacity-80">Pantau kelas dan selesaikan administrasi hari ini.</p></div><div className="flex items-center gap-3"><div className="rounded-2xl bg-white/15 px-4 py-3"><p className="text-[10px] font-bold uppercase tracking-wider opacity-70">Kelas aktif</p><p className="mt-1 text-lg font-bold">{kelas.name}</p></div><button onClick={() => setActiveTab('absen')} className="btn-soft bg-white text-primary hover:bg-white/90"><ClipboardCheck className="h-4 w-4" /> Isi Absensi</button></div></section>
+    <section className="dashboard-hero"><div><p className="text-sm font-medium text-primary-foreground/75">{new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p><h1>Halo, {greeting}</h1><p>Pantau kelas dan selesaikan administrasi hari ini.</p></div><div className="dashboard-hero-actions"><div className="dashboard-class-chip"><span>Kelas aktif</span><strong>{kelas.name}</strong></div><button onClick={() => setActiveTab('absen')} className="btn-soft dashboard-hero-cta"><ClipboardCheck className="h-4 w-4" aria-hidden="true" /> Isi absensi</button></div></section>
     {showBackupAlert && <div className="alert-rich alert-rich-yellow flex items-start gap-3"><Bell className="mt-0.5 h-5 w-5 shrink-0" /><div className="flex-1"><p className="text-sm font-bold">{lastBackupDate ? 'Backup terakhir sudah lebih dari 7 hari' : 'Data belum pernah dibackup'}</p><p className="mt-0.5 text-xs opacity-80">Amankan data Anda melalui menu Setelan.</p></div><button onClick={() => setActiveTab('setelan')} className="text-xs font-bold">Backup <ArrowRight className="inline h-3.5 w-3.5" /></button></div>}
     {todayLibur && <div className="alert-rich alert-rich-yellow flex items-start gap-3"><Calendar className="mt-0.5 h-5 w-5 shrink-0" /><div><p className="text-sm font-bold">Hari ini libur untuk jenjang {jenjangAktif}</p><p className="mt-0.5 text-xs opacity-80">{todayLibur.keterangan || 'Absensi hari ini tidak perlu diisi.'}</p></div></div>}
     <section className="grid grid-cols-2 gap-3 md:grid-cols-4">{[{ label: 'Siswa', value: totalStudents, icon: Users, tone: 'text-primary bg-accent-light' }, { label: 'Hadir', value: hadir, icon: CheckCircle2, tone: 'text-green bg-green-light' }, { label: 'Sakit / Izin', value: `${sakit} / ${izin}`, icon: AlertCircle, tone: 'text-yellow bg-yellow-light' }, { label: 'Alpha', value: alpha, icon: UserX, tone: 'text-red bg-red-light' }].map(item => <div key={item.label} className="card-soft !p-4"><div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl ${item.tone}`}><item.icon className="h-4 w-4" /></div><p className="text-2xl font-black text-foreground">{item.value}</p><p className="mt-1 text-xs font-semibold text-text-tertiary">{item.label}</p></div>)}</section>

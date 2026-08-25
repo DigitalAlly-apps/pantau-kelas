@@ -8,8 +8,8 @@ import type { TabId } from '@/types';
 const TAB_TITLES: Record<TabId, string> = {
   home:      'Beranda',
   siswa:     'Data Kelas & Siswa',
-  aktivitas: 'Aktivitas',
-  laporan:   'Buku Induk & Laporan',
+  aktivitas: 'Absensi & Jurnal',
+  laporan:   'Pantauan & Laporan',
   setelan:   'Setelan & Informasi',
   auth:      'Cloud Sync',
 };
@@ -40,11 +40,10 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-30 px-4 pt-4 pb-2 lg:static lg:px-6 lg:pt-5">
-      <div className="glass-panel-jurnal flex items-center justify-between rounded-3xl px-4 py-3 relative overflow-hidden">
-        <div className="pointer-events-none absolute -left-8 -top-10 h-24 w-24 rounded-full bg-primary/15 blur-2xl" />
+      <div className="glass-panel-jurnal flex items-center justify-between rounded-2xl px-4 py-3 relative overflow-hidden">
       <div className="relative z-10 min-w-0">
         <div className="mb-1 flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_14px_hsl(var(--accent))]" />
+          <span className="h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
           <span className="text-[10px] font-black uppercase tracking-[.14em] text-text-tertiary">{tanggalStr}</span>
         </div>
         <div className="font-display truncate text-[19px] font-bold leading-none text-foreground">{activeTab === 'home' ? (firstName || 'Pantau Kelas') : TAB_TITLES[activeTab]}</div>
@@ -57,14 +56,14 @@ export function AppHeader() {
         </button>
 
         {/* Theme toggle */}
-        <button onClick={() => toggleDark()} className="app-icon-button" title={isDark ? 'Mode Terang' : 'Mode Gelap'}>
+        <button onClick={() => toggleDark()} className="app-icon-button" title={isDark ? 'Mode Terang' : 'Mode Gelap'} aria-label={isDark ? 'Aktifkan mode terang' : 'Aktifkan mode gelap'}>
           {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
         </button>
 
         {/* Info & Tutorial Toggle */}
         <Sheet>
           <SheetTrigger asChild>
-            <button className="app-icon-button" title="Informasi & Bantuan">
+            <button className="app-icon-button" title="Informasi & Bantuan" aria-label="Informasi dan bantuan">
               <Info className="w-3.5 h-3.5 text-primary" />
             </button>
           </SheetTrigger>

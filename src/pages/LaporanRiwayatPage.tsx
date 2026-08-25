@@ -8,19 +8,20 @@ export function LaporanRiwayatPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="page-heading">
         <div>
           <p className="label-upper">Buku induk</p>
-          <h1 className="mt-1 text-lg font-bold">Laporan kelas</h1>
+          <h1>Laporan kelas</h1>
+          <p className="page-heading-copy">Pantau siswa, nilai ujian, dan riwayat jurnal dengan cepat.</p>
         </div>
-        <select value={reportView} onChange={event => setReportView(event.target.value as 'pantauan' | 'ujian' | 'riwayat')} className="input-soft w-auto min-w-[140px] py-2 text-xs font-bold" aria-label="Pilih laporan">
-          <option value="pantauan">Pantauan</option>
-          <option value="ujian">Ujian</option>
-          <option value="riwayat">Riwayat</option>
-        </select>
+      </div>
+      <div className="app-segmented-control app-segmented-control-wide" role="tablist" aria-label="Pilih laporan">
+        <button type="button" role="tab" aria-selected={reportView === 'pantauan'} onClick={() => setReportView('pantauan')} className={reportView === 'pantauan' ? 'is-active' : ''}>Pantauan</button>
+        <button type="button" role="tab" aria-selected={reportView === 'ujian'} onClick={() => setReportView('ujian')} className={reportView === 'ujian' ? 'is-active' : ''}>Ujian</button>
+        <button type="button" role="tab" aria-selected={reportView === 'riwayat'} onClick={() => setReportView('riwayat')} className={reportView === 'riwayat' ? 'is-active' : ''}>Riwayat</button>
       </div>
 
-      <div className="mt-1">
+      <div>
         {reportView === 'pantauan' && <LaporanPage />}
         {reportView === 'ujian'   && <RekapUjianPage />}
         {reportView === 'riwayat' && <RiwayatPage />}

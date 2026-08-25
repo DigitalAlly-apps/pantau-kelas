@@ -6,8 +6,8 @@ import { InformasiPage } from '@/pages/InformasiPage';
 
 const items: { id: TabId; label: string; icon: typeof House }[] = [
   { id: 'home', label: 'Beranda', icon: House },
-  { id: 'aktivitas', label: 'Aktivitas', icon: Activity },
-  { id: 'laporan', label: 'Laporan', icon: BarChart3 },
+  { id: 'aktivitas', label: 'Catat', icon: Activity },
+  { id: 'laporan', label: 'Pantauan', icon: BarChart3 },
 ];
 
 export function MobileBottomNav() {

@@ -6,21 +6,17 @@ export function ActivityPage() {
   const { activityView, setActivityView } = useApp();
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
+    <div className="flex flex-col gap-5">
+      <div className="page-heading">
         <div>
-          <p className="label-upper">Aktivitas guru</p>
-          <h1 className="mt-1 text-lg font-bold">Catatan kelas</h1>
+          <p className="label-upper">Aktivitas harian</p>
+          <h1>Absensi & jurnal</h1>
+          <p className="page-heading-copy">Catat kehadiran dan perkembangan siswa dari satu tempat.</p>
         </div>
-        <select
-          value={activityView}
-          onChange={event => setActivityView(event.target.value as 'absen' | 'jurnal')}
-          className="input-soft w-auto min-w-[140px] py-2 text-xs font-bold"
-          aria-label="Pilih aktivitas"
-        >
-          <option value="absen">Absensi</option>
-          <option value="jurnal">Jurnal</option>
-        </select>
+      </div>
+      <div className="app-segmented-control" role="tablist" aria-label="Pilih aktivitas">
+        <button type="button" role="tab" aria-selected={activityView === 'absen'} onClick={() => setActivityView('absen')} className={activityView === 'absen' ? 'is-active' : ''}>Absensi</button>
+        <button type="button" role="tab" aria-selected={activityView === 'jurnal'} onClick={() => setActivityView('jurnal')} className={activityView === 'jurnal' ? 'is-active' : ''}>Jurnal siswa</button>
       </div>
       {activityView === 'absen' ? <AbsenPage /> : <JurnalPage />}
     </div>
