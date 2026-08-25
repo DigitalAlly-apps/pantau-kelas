@@ -20,6 +20,7 @@ const DEFAULT_SEMESTER: SemesterConfig = {
   ganjil: { utsStart: '', utsEnd: '', uasStart: '', uasEnd: '' },
   genap: { utsStart: '', utsEnd: '', uasStart: '', uasEnd: '' },
 };
+const DELETED_KELAS_KEY = 'jg_deletedKelasIds';
 
 // ─── Fix 3: Zod-lite validation for importBackup ─────────────────────────────
 function validateBackup(data: unknown): data is BackupData {
@@ -90,12 +91,14 @@ interface AppState {
   importBackup: (data: BackupData) => void;
   resetAll: () => void;
   syncWithCloud: () => Promise<boolean>;
+  initialSyncReady: boolean;
 }
 
 const AppContext = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const { user, syncData, syncState } = useSupabase();
+  const { user, authLoading, syncData, syncState } = useSupabase();
+  const [initialSyncReady, setInitialSyncReady] = useState(false);
   // ── Fix 1: All state loaded from localStorage ──────────────────────────────
   const [namaGuru, setNamaGuruRaw] = useState(() => ls<string>('jg_namaGuru', ''));
   const [lastBackupDate, setLastBackupRaw] = useState(() => ls<string | null>('jg_lastBackup', null));
@@ -323,7 +326,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const deleteKelas = useCallback((id: string) => {
     setKelasList(prev => prev.filter(k => k.id !== id));
-  }, []);
+    setAbsenRecords(prev => prev.filter(record => record.kelasId !== id));
+    setKasusRecords(prev => prev.filter(record => record.kelasId !== id));
+    setCatatanRecords(prev => prev.filter(record => record.kelasId !== id));
+    setConfirmedDates(prev => prev.filter(record => record.kelasId !== id));
+    const deletedIds = storageGet<string[]>(DELETED_KELAS_KEY, []);
+    if (!deletedIds.includes(id)) storageSet(DELETED_KELAS_KEY, [...deletedIds, id]);
+  }, [kelasList, setKelasList, setAbsenRecords, setKasusRecords, setCatatanRecords, setConfirmedDates]);
   const addStudentsToKelas = useCallback((kelasId: string, students: { name: string; nis: string }[]) => {
     setKelasList(prev => prev.map(k => {
       if (k.id !== kelasId) return k;
@@ -337,15 +346,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
   const updateStudent = useCallback((kelasId: string, studentId: string, updates: { name?: string; nis?: string }) => {
-    setKelasList(prev => prev.map(k => {
+    const previousName = kelasList.find(k => k.id === kelasId)?.students.find(s => s.id === studentId)?.name;
+    const nextKelasList = kelasList.map(k => {
       if (k.id !== kelasId) return k;
       const updated = k.students.map(s =>
         s.id !== studentId ? s : { ...s, ...updates }
       );
       updated.sort((a, b) => a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' }));
       return { ...k, students: updated };
-    }));
-  }, []);
+    });
+    const nextAbsenRecords = updates.name && updates.name !== previousName
+      ? absenRecords.map(record => record.kelasId === kelasId && record.studentId === studentId ? { ...record, studentName: updates.name! } : record)
+      : absenRecords;
+    const nextKasusRecords = updates.name && updates.name !== previousName
+      ? kasusRecords.map(record => record.kelasId === kelasId && record.studentId === studentId ? { ...record, studentName: updates.name! } : record)
+      : kasusRecords;
+    const nextCatatanRecords = updates.name && updates.name !== previousName
+      ? catatanRecords.map(record => record.kelasId === kelasId && record.studentId === studentId ? { ...record, studentName: updates.name! } : record)
+      : catatanRecords;
+
+    setKelasList(nextKelasList);
+    if (updates.name && updates.name !== previousName) {
+      setAbsenRecords(nextAbsenRecords);
+      setKasusRecords(nextKasusRecords);
+      setCatatanRecords(nextCatatanRecords);
+      if (user) {
+        void syncData({
+          version: '5.0', exportedAt: new Date().toISOString(), namaGuru, semester,
+          kelasList: nextKelasList, absenRecords: nextAbsenRecords,
+          kasusRecords: nextKasusRecords, catatanRecords: nextCatatanRecords,
+          liburDates, confirmedDates,
+        }).then(result => {
+          if (!result) showToast('Nama siswa tersimpan lokal, tetapi gagal disimpan ke cloud.');
+        });
+      }
+    }
+  }, [kelasList, absenRecords, kasusRecords, catatanRecords, liburDates, confirmedDates, namaGuru, semester, user, syncData, setKelasList, setAbsenRecords, setKasusRecords, setCatatanRecords, showToast]);
   const removeStudentFromKelas = useCallback((kelasId: string, studentId: string) => {
     setKelasList(prev => prev.map(k =>
       k.id !== kelasId ? k : { ...k, students: k.students.filter(s => s.id !== studentId) }
@@ -365,7 +401,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSemester(DEFAULT_SEMESTER);
     // Clear all storage keys (IDB + localStorage)
     ['jg_namaGuru', 'jg_lastBackup', 'jg_activeTab', 'jg_activeKelas',
-      'jg_kelasList', 'jg_absenRecords', 'jg_kasusRecords', 'jg_catatanRecords',
+      'jg_kelasList', 'jg_deletedKelasIds', 'jg_absenRecords', 'jg_kasusRecords', 'jg_catatanRecords',
       'jg_jadwalList', 'jg_liburDates', 'jg_semester', 'jg_autobackup', 'jg_confirmedDates'].forEach(k => storageRemove(k));
     showToast('Semua data berhasil direset');
   }, [showToast]);
@@ -449,8 +485,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // ── Sync awal saat user pertama kali login ────────────────────────────────────
   useEffect(() => {
-    if (user && lastSyncedUserIdRef.current !== user.id) {
+    if (authLoading) {
+      setInitialSyncReady(false);
+      return;
+    }
+    if (!user) {
+      lastSyncedUserIdRef.current = null;
+      lastSyncedDataRef.current = '';
+      setInitialSyncReady(true);
+      return;
+    }
+    if (lastSyncedUserIdRef.current !== user.id) {
       lastSyncedUserIdRef.current = user.id;
+      setInitialSyncReady(false);
       const triggerInitialSync = async () => {
         // Tunggu sebentar agar React selesai render sebelum mulai sync
         await new Promise(r => setTimeout(r, 300));
@@ -516,14 +563,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const errMsg = sessionStorage.getItem('jg_lastSyncError');
           showToast(`❌ Gagal sinkronisasi: ${errMsg || 'Cek koneksi internet'}`);
         }
+        setInitialSyncReady(true);
       };
 
       triggerInitialSync();
-    } else if (!user) {
-      lastSyncedUserIdRef.current = null;
-      lastSyncedDataRef.current = '';
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   // ── Auto-sync debounced ke Supabase ──────────────────────────────────────
   useEffect(() => {
@@ -641,6 +686,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       semester, setSemester,
       exportBackup, importBackup, resetAll,
       syncWithCloud,
+      initialSyncReady,
     }}>
       {children}
     </AppContext.Provider>

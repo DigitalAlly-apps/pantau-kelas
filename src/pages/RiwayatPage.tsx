@@ -3,7 +3,13 @@ import { Search, Trash2, Pencil, Check, X, Filter, ChevronDown } from 'lucide-re
 import { useApp } from '@/context/AppContext';
 import type { AbsenRecord, KasusRecord, CatatanRecord, PeriodeUjian } from '@/types';
 
-type FilterType = 'semua' | 'absen' | 'kasus' | 'catatan';
+export type FilterType = 'semua' | 'absen' | 'jurnal' | 'kasus' | 'catatan';
+
+interface Props {
+  studentId?: string;
+  initialFilter?: FilterType;
+  onBack?: () => void;
+}
 
 const PAGE_SIZE = 50;
 
@@ -29,7 +35,7 @@ function LoadMoreButton({ shown, total, onLoad }: { shown: number; total: number
   );
 }
 
-export function RiwayatPage() {
+export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Props) {
   const {
     absenRecords, updateAbsenRecord, deleteAbsenRecord,
     kasusRecords, updateKasusRecord, deleteKasusRecord,
@@ -38,7 +44,7 @@ export function RiwayatPage() {
   } = useApp();
 
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<FilterType>('semua');
+  const [filter, setFilter] = useState<FilterType>(initialFilter);
   const [editId, setEditId] = useState<string | null>(null);
   const [editType, setEditType] = useState<'absen' | 'kasus' | 'catatan' | null>(null);
   const [editData, setEditData] = useState<Partial<AbsenRecord & KasusRecord & CatatanRecord>>({});
@@ -68,33 +74,36 @@ export function RiwayatPage() {
   const absenFiltered = useMemo(() =>
     absenRecords
       .filter(r => r.kelasId === activeKelas)
+      .filter(r => !studentId || r.studentId === studentId)
       .filter(r => r.studentName.toLowerCase().includes(search.toLowerCase()) || r.date.includes(search))
       .sort((a, b) => b.date.localeCompare(a.date)),
-    [absenRecords, activeKelas, search]
+    [absenRecords, activeKelas, search, studentId]
   );
 
   const kasusFiltered = useMemo(() =>
     kasusRecords
       .filter(r => r.kelasId === activeKelas)
+      .filter(r => !studentId || r.studentId === studentId)
       .filter(r =>
         r.studentName.toLowerCase().includes(search.toLowerCase()) ||
         r.description.toLowerCase().includes(search.toLowerCase()) ||
         r.date.includes(search)
       )
       .sort((a, b) => b.date.localeCompare(a.date)),
-    [kasusRecords, activeKelas, search]
+    [kasusRecords, activeKelas, search, studentId]
   );
 
   const catatanFiltered = useMemo(() =>
     catatanRecords
       .filter(r => r.kelasId === activeKelas)
+      .filter(r => !studentId || r.studentId === studentId)
       .filter(r =>
         r.studentName.toLowerCase().includes(search.toLowerCase()) ||
         r.content.toLowerCase().includes(search.toLowerCase()) ||
         r.date.includes(search)
       )
       .sort((a, b) => b.date.localeCompare(a.date)),
-    [catatanRecords, activeKelas, search]
+    [catatanRecords, activeKelas, search, studentId]
   );
 
   // Paginated slices
@@ -145,12 +154,14 @@ export function RiwayatPage() {
   const filterOptions: { id: FilterType; label: string }[] = [
     { id: 'semua',   label: 'Semua' },
     { id: 'absen',   label: 'Absensi' },
+    { id: 'jurnal',  label: 'Jurnal' },
     { id: 'kasus',   label: 'Kasus' },
     { id: 'catatan', label: 'Catatan' },
   ];
 
   return (
     <div className="flex flex-col gap-4 max-w-4xl mx-auto w-full">
+      {onBack && <button onClick={onBack} className="flex items-center gap-2 text-xs font-bold text-text-secondary">← Kembali ke Pantauan</button>}
       {/* Search & Filter */}
       <div className="bg-surface rounded-2xl shadow-soft p-4 flex flex-col gap-3">
         <div className="relative">
@@ -238,7 +249,7 @@ export function RiwayatPage() {
       )}
 
       {/* Kasus */}
-      {(filter === 'semua' || filter === 'kasus') && (
+      {(filter === 'semua' || filter === 'jurnal' || filter === 'kasus') && (
         <div className="bg-surface rounded-2xl shadow-soft overflow-hidden">
           <div className="px-4 py-3 border-b border-border flex items-center gap-2">
             <span className="text-sm font-semibold text-foreground">Kasus</span>
@@ -314,7 +325,7 @@ export function RiwayatPage() {
       )}
 
       {/* Catatan Anekdot */}
-      {(filter === 'semua' || filter === 'catatan') && (
+      {(filter === 'semua' || filter === 'jurnal' || filter === 'catatan') && (
         <div className="bg-surface rounded-2xl shadow-soft overflow-hidden">
           <div className="px-4 py-3 border-b border-border flex items-center gap-2">
             <span className="text-sm font-semibold text-foreground">Catatan Anekdot</span>

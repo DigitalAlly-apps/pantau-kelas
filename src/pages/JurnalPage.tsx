@@ -19,7 +19,7 @@ export function JurnalPage() {
   const today = new Date().toISOString().split('T')[0];
   const [tab, setTab] = useState<Tab>('hari-ini');
   const [form, setForm] = useState<Form>(null);
-  const [studentId, setStudentId] = useState('');
+  const [studentId, setStudentId] = useState(() => sessionStorage.getItem('jg_jurnal_student_id') || '');
   const [studentQuery, setStudentQuery] = useState('');
   const deferredStudentQuery = useDeferredValue(studentQuery);
   const [date, setDate] = useState(today);
@@ -30,7 +30,7 @@ export function JurnalPage() {
   const [pemanggilan, setPemanggilan] = useState('');
   const [waktuPemanggilan, setWaktuPemanggilan] = useState('');
   const [tindakLanjut, setTindakLanjut] = useState('');
-  const reset = () => { setForm(null); setStudentId(''); setStudentQuery(''); setDate(today); setCategory(KATEGORI[0]); setDescription(''); setCatatanType('umum'); setShowExtra(false); setPemanggilan(''); setWaktuPemanggilan(''); setTindakLanjut(''); };
+  const reset = () => { setForm(null); setStudentId(''); sessionStorage.removeItem('jg_jurnal_student_id'); setStudentQuery(''); setDate(today); setCategory(KATEGORI[0]); setDescription(''); setCatatanType('umum'); setShowExtra(false); setPemanggilan(''); setWaktuPemanggilan(''); setTindakLanjut(''); };
   const student = kelas?.students.find(s => s.id === studentId);
   const filteredStudents = useMemo(() => {
     const query = deferredStudentQuery.trim().toLocaleLowerCase('id-ID');

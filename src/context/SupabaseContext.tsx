@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { storageGet } from '@/lib/storage';
 import type { User } from '@supabase/supabase-js';
 import type { BackupData, Kelas, Student, AbsenRecord, KasusRecord, CatatanRecord, LiburDate, ConfirmedDate, SemesterConfig } from '@/types';
 
 export type SyncState = 'idle' | 'syncing' | 'success' | 'error';
 type AuthResult = { error: Error | null };
 type StudentPayload = { id: string; name: string; nis: string; kelas_id: string; user_id: string };
+const DELETED_KELAS_KEY = 'jg_deletedKelasIds';
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Terjadi kesalahan yang tidak diketahui');
@@ -21,6 +23,10 @@ function dedupeById<T extends { id: string }>(items: T[]): T[] {
     }
   }
   return result;
+}
+
+function isMissingDeletedKelasTable(error: { code?: string } | null) {
+  return error?.code === '42P01' || error?.code === 'PGRST205';
 }
 
 interface SupabaseContextType {
@@ -176,10 +182,43 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     setSyncState('syncing');
     try {
       const uid = user.id;
+      const localDeletedKelasIds = new Set(storageGet<string[]>(DELETED_KELAS_KEY, []));
+      let cloudDeletedKelasIds = new Set<string>();
+
+      const deletedKelasResult = await supabase
+        .from('deleted_kelas')
+        .select('kelas_id')
+        .eq('user_id', uid);
+      if (!deletedKelasResult.error) {
+        cloudDeletedKelasIds = new Set((deletedKelasResult.data || []).map(row => row.kelas_id as string));
+      } else if (!isMissingDeletedKelasTable(deletedKelasResult.error)) {
+        throw deletedKelasResult.error;
+      }
+      const deletedKelasIds = new Set([...localDeletedKelasIds, ...cloudDeletedKelasIds]);
+
+      if (localDeletedKelasIds.size > 0) {
+        const tombstones = [...localDeletedKelasIds].map(kelasId => ({
+          kelas_id: kelasId,
+          user_id: uid,
+        }));
+        const { error: tombstoneError } = await supabase.from('deleted_kelas').upsert(tombstones);
+        if (tombstoneError && !isMissingDeletedKelasTable(tombstoneError)) throw tombstoneError;
+      }
+
+      // Hapus data cloud untuk kelas yang sengaja dihapus di perangkat ini.
+      for (const kelasId of localDeletedKelasIds) {
+        for (const table of ['students', 'absen_records', 'kasus_records', 'catatan_records', 'confirmed_dates', 'kelas']) {
+          const idColumn = table === 'kelas' ? 'id' : 'kelas_id';
+          const { error } = await supabase.from(table).delete().eq(idColumn, kelasId).eq('user_id', uid);
+          if (error) throw error;
+        }
+      }
+
+      const activeLocalKelas = localState.kelasList.filter(k => !deletedKelasIds.has(k.id));
 
       // ── A.       // 1. Upload Kelas
-      if (localState.kelasList.length > 0) {
-        const payloadKelas = dedupeById(localState.kelasList.map(k => ({
+      if (activeLocalKelas.length > 0) {
+        const payloadKelas = dedupeById(activeLocalKelas.map(k => ({
           id: k.id,
           name: k.name,
           jenjang: k.jenjang || 'SMP',
@@ -193,7 +232,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
       // 2. Upload Students
       const rawStudents: StudentPayload[] = [];
-      localState.kelasList.forEach(k => {
+      activeLocalKelas.forEach(k => {
         k.students.forEach(s => {
           rawStudents.push({
             id: s.id,
@@ -371,10 +410,33 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       const { data: dbSemester, error: errFetchSem } = await supabase.from('semester_config').select('*').eq('user_id', uid).maybeSingle();
       if (errFetchSem) throw errFetchSem;
 
+      // Bersihkan kelas kosong lama saat perangkat belum memiliki kelas lokal.
+      // Kelas yang memiliki siswa atau histori tidak disentuh.
+      const cloudKelas = (dbKelas || []).filter(k => !deletedKelasIds.has(k.id));
+      const localHasAnyClassData = localState.kelasList.some(k => k.students.length > 0) ||
+        localState.absenRecords.length > 0 || localState.kasusRecords.length > 0 || localState.catatanRecords.length > 0;
+      const shouldCleanupEmptyKelas = !localHasAnyClassData;
+      if (shouldCleanupEmptyKelas && cloudKelas.length > 0) {
+        const kelasWithData = new Set<string>([
+          ...(dbStudents || []).map(row => row.kelas_id as string),
+          ...(dbAbsen || []).map(row => row.kelas_id as string),
+          ...(dbKasus || []).map(row => row.kelas_id as string),
+          ...(dbCatatan || []).map(row => row.kelas_id as string),
+          ...(dbConfirmed || []).map(row => row.kelas_id as string),
+        ]);
+        const emptyKelasIds = cloudKelas.filter(k => !kelasWithData.has(k.id)).map(k => k.id as string);
+        for (const kelasId of emptyKelasIds) {
+          const { error } = await supabase.from('kelas').delete().eq('id', kelasId).eq('user_id', uid);
+          if (error) throw error;
+        }
+      }
+
       // ── C. RAKIT BALIK KE BACKUPDATA FORMAT (LOCAL STATE) ──────────────────
 
       // Petakan siswa ke dalam kelas (urutkan abjad)
-      const mappedKelasList: Kelas[] = (dbKelas || []).map(k => {
+      const mappedKelasList: Kelas[] = cloudKelas
+        .filter(k => !(shouldCleanupEmptyKelas && !(dbStudents || []).some(row => row.kelas_id === k.id)))
+        .map(k => {
         const classStudents: Student[] = (dbStudents || [])
           .filter(s => s.kelas_id === k.id)
           .map(s => ({

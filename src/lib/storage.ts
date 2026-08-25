@@ -63,7 +63,7 @@ export function initStorage(): Promise<void> {
       // Migrasi: kalau ada data di localStorage tapi belum di IDB, pindahkan
       const JG_KEYS = [
         'jg_namaGuru', 'jg_lastBackup', 'jg_activeTab', 'jg_activeKelas',
-        'jg_kelasList', 'jg_absenRecords', 'jg_kasusRecords', 'jg_catatanRecords',
+        'jg_kelasList', 'jg_deletedKelasIds', 'jg_absenRecords', 'jg_kasusRecords', 'jg_catatanRecords',
         'jg_liburDates', 'jg_semester',
       ];
       for (const key of JG_KEYS) {

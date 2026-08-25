@@ -4,7 +4,7 @@ import { School, User, CheckCircle, ArrowRight } from 'lucide-react';
 import { PantauKelasLogo } from './PantauKelasLogo';
 
 export function OnboardingWizard() {
-  const { setNamaGuru, addKelas } = useApp();
+  const { setNamaGuru, addKelas, initialSyncReady, kelasList, namaGuru } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(0);
 
@@ -12,12 +12,15 @@ export function OnboardingWizard() {
   const [inputClass, setInputClass] = useState('');
 
   useEffect(() => {
-    // Tampilkan wizard jika belum pernah diselesaikan
+    if (!initialSyncReady) return;
     const isDone = localStorage.getItem('jg_onboardingComplete');
-    if (!isDone) {
+    if (isDone || kelasList.length > 0 || namaGuru.trim()) {
+      localStorage.setItem('jg_onboardingComplete', 'true');
+      setIsOpen(false);
+    } else {
       setIsOpen(true);
     }
-  }, []);
+  }, [initialSyncReady, kelasList.length, namaGuru]);
 
   if (!isOpen) return null;
 
