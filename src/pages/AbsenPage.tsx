@@ -370,18 +370,15 @@ export function AbsenPage() {
           </div>
         )}
 
-        {/* Mata Pelajaran */}
-        <div>
+        {/* Mata pelajaran hanya diperlukan untuk sesi ujian. */}
+        {isUjian && <div>
           <label className="label-upper block mb-1.5">
             Mata Pelajaran
-            {isUjian
-              ? <span className="ml-1.5 text-semantic-red text-[10px] font-bold normal-case">* wajib untuk {periode}</span>
-              : <span className="ml-1.5 text-text-tertiary text-[10px] font-normal normal-case">(opsional)</span>
-            }
+            <span className="ml-1.5 text-semantic-red text-[10px] font-bold normal-case">* wajib untuk {periode}</span>
           </label>
 
           {/* Chip sesi ujian yang sudah ada hari ini */}
-          {isUjian && sesiUjianHariIni.length > 0 && (
+          {sesiUjianHariIni.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-1.5 items-center">
               <span className="text-[10px] text-text-tertiary">Sesi hari ini:</span>
               {sesiUjianHariIni.map(session => {
@@ -412,15 +409,15 @@ export function AbsenPage() {
           <input
             value={mataPelajaran}
             onChange={e => setMataPelajaran(e.target.value)}
-            placeholder={isUjian ? `Nama mapel ${periode} (wajib)` : 'Contoh: Matematika, IPA...'}
-            className={`input-soft w-full ${isUjian && !mataPelajaran ? 'border-semantic-red/50' : ''}`}
+            placeholder={`Nama mapel ${periode} (wajib)`}
+            className={`input-soft w-full ${!mataPelajaran ? 'border-semantic-red/50' : ''}`}
           />
-          {isUjian && !mataPelajaran && (
+          {!mataPelajaran && (
             <p className="text-[11px] text-semantic-red mt-1 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" /> Isi mapel dulu sebelum simpan
             </p>
           )}
-        </div>
+        </div>}
 
         {/* Jam/Sesi Ujian (opsional, hanya UTS/UAS) */}
         {isUjian && (
