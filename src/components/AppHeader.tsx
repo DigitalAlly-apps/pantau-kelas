@@ -1,4 +1,4 @@
-import { Moon, Sun, Info, RefreshCw } from 'lucide-react';
+import { Moon, Sun, Info } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useDarkMode } from '@/hooks/use-dark-mode';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -29,17 +29,8 @@ export function AppHeader() {
 
   const kelasName = kelasList.find(k => k.id === activeKelas)?.name;
   const firstName = namaGuru ? namaGuru.split(' ')[0] : null;
-  const reloadApp = async () => {
-    try {
-      const registration = await navigator.serviceWorker?.getRegistration();
-      await registration?.update();
-    } finally {
-      window.location.reload();
-    }
-  };
-
   return (
-    <header className="sticky top-0 z-30 px-4 pt-4 pb-2 lg:static lg:px-6 lg:pt-5">
+    <header className="sticky top-0 z-30 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 lg:static lg:px-6 lg:pt-5">
       <div className="glass-panel-jurnal flex items-center justify-between rounded-2xl px-4 py-3 relative overflow-hidden">
       <div className="relative z-10 min-w-0">
         <div className="mb-1 flex items-center gap-2">
@@ -51,10 +42,6 @@ export function AppHeader() {
       </div>
 
       <div className="relative z-10 flex shrink-0 items-center gap-2">
-        <button onClick={() => void reloadApp()} className="app-icon-button" title="Muat ulang versi terbaru" aria-label="Muat ulang versi terbaru">
-          <RefreshCw className="w-3.5 h-3.5" />
-        </button>
-
         {/* Theme toggle */}
         <button onClick={() => toggleDark()} className="app-icon-button" title={isDark ? 'Mode Terang' : 'Mode Gelap'} aria-label={isDark ? 'Aktifkan mode terang' : 'Aktifkan mode gelap'}>
           {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}

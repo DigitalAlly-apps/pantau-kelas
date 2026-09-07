@@ -14,6 +14,7 @@ export function MobileBottomNav() {
   const { activeTab, setActiveTab, setActiveStudentId } = useApp();
   const [moreOpen, setMoreOpen] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const moreActive = moreOpen || ['siswa', 'setelan', 'auth'].includes(activeTab);
 
   const navigate = (tab: TabId) => {
     setActiveStudentId(null);
@@ -35,8 +36,8 @@ export function MobileBottomNav() {
             </button>
           );
         })}
-        <button onClick={() => { setShowInfo(false); setMoreOpen(true); }} className={`relative flex min-h-[54px] flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[11px] font-bold transition-all ${moreOpen ? 'text-primary-foreground' : 'text-text-tertiary hover:text-foreground'}`}>
-          {moreOpen && <span className="absolute inset-1 rounded-2xl bg-gradient-to-br from-primary to-blue shadow-accent" />}
+        <button onClick={() => { setShowInfo(false); setMoreOpen(true); }} className={`relative flex min-h-[54px] flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[11px] font-bold transition-all ${moreActive ? 'text-primary' : 'text-text-tertiary hover:text-foreground'}`}>
+          {moreActive && <span className="absolute inset-1 rounded-2xl bg-accent-light" />}
           <PanelsTopLeft className="relative z-10 h-5 w-5 opacity-75" strokeWidth={2.2} />
           <span className="relative z-10 whitespace-nowrap">Lainnya</span>
         </button>

@@ -400,11 +400,12 @@ export function SiswaPage() {
                     <User className="w-6 h-6 text-primary" />
                   </div>
                   
-                  <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                     <button
                       onClick={(e) => { e.stopPropagation(); setEditingStudent({ id: s.id, name: s.name, nis: s.nis }) }}
                       className="w-8 h-8 rounded-lg bg-bg-2 hover:bg-accent-light text-text-tertiary hover:text-primary flex items-center justify-center transition-all shadow-sm"
                       title="Edit"
+                      aria-label={`Edit ${s.name}`}
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
@@ -412,6 +413,7 @@ export function SiswaPage() {
                       onClick={(e) => { e.stopPropagation(); handleRemove(s.id, s.name) }}
                       className="w-8 h-8 rounded-lg bg-bg-2 hover:bg-semantic-red-light text-text-tertiary hover:text-semantic-red flex items-center justify-center transition-all shadow-sm"
                       title="Hapus"
+                      aria-label={`Hapus ${s.name}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

@@ -14,20 +14,20 @@
   }
 
   :root {
-    --bg:       210 20% 98%;
-    --bg-2:     210 20% 95%;
-    --bg-3:     210 20% 92%;
-    --surface:  0 0% 100%;
-    --border:   210 14% 89%;
-    --border-2: 210 14% 83%;
-    --text:     220 30% 15%;
-    --text-2:   220 15% 45%;
-    --text-3:   220 10% 60%;
+    --bg:       32 38% 97%;
+    --bg-2:     32 30% 93%;
+    --bg-3:     31 25% 89%;
+    --surface:  30 50% 99%;
+    --border:   26 19% 87%;
+    --border-2: 25 16% 76%;
+    --text:     310 24% 18%;
+    --text-2:   308 12% 42%;
+    --text-3:   307 9% 56%;
 
     /* Calm, high-contrast blue for a teacher's daily workspace */
-    --accent:         217 77% 49%;
-    --accent-light:   217 76% 96%;
-    --accent-hover:   217 77% 40%;
+    --accent:         311 49% 38%;
+    --accent-light:   310 55% 94%;
+    --accent-hover:   311 53% 30%;
 
     --red:          345 80% 55%;
     --red-light:    345 80% 96%;
@@ -37,8 +37,8 @@
     --blue-light:   210 90% 96%;
     --green:        150 75% 45%;
     --green-light:  150 75% 95%;
-    --purple:       280 80% 60%;
-    --purple-light: 280 80% 96%;
+    --purple:       280 55% 55%;
+    --purple-light: 280 60% 95%;
 
     --radius:    14px;
     --radius-sm:  8px;
@@ -50,7 +50,7 @@
     --shadow-lg:     0 12px 40px rgba(0,0,0,0.08);
     --shadow-accent: 0 8px 25px hsl(215 90% 55% / 0.3);
 
-    --sidebar-background: 210 20% 98%;
+    --sidebar-background: 30 50% 99%;
     --sidebar-foreground: var(--text);
     --sidebar-primary: var(--accent);
     --sidebar-primary-foreground: 0 0% 100%;
@@ -78,19 +78,19 @@
   }
 
   .dark {
-    --bg:       230 25% 6%;
-    --bg-2:     230 25% 10%;
-    --bg-3:     230 25% 14%;
-    --surface:  230 25% 8%;
-    --border:   230 20% 16%;
-    --border-2: 230 20% 22%;
-    --text:     210 20% 98%;
-    --text-2:   210 10% 70%;
-    --text-3:   210 10% 50%;
+    --bg:       310 20% 8%;
+    --bg-2:     310 18% 12%;
+    --bg-3:     310 16% 17%;
+    --surface:  310 18% 10%;
+    --border:   310 14% 20%;
+    --border-2: 310 14% 27%;
+    --text:     28 30% 96%;
+    --text-2:   25 14% 72%;
+    --text-3:   25 10% 52%;
 
-    --accent:         217 91% 64%;
-    --accent-light:   217 42% 17%;
-    --accent-hover:   217 91% 72%;
+    --accent:         310 67% 70%;
+    --accent-light:   310 31% 19%;
+    --accent-hover:   310 70% 78%;
 
     --red:          345 80% 65%;
     --red-light:    345 40% 16%;
@@ -108,7 +108,7 @@
     --shadow-lg:     0 12px 40px rgba(0,0,0,0.6);
     --shadow-accent: 0 8px 30px hsl(215 100% 65% / 0.25);
 
-    --sidebar-background: 230 25% 6%;
+    --sidebar-background: 310 20% 8%;
     --sidebar-foreground: var(--text);
     --sidebar-primary: var(--accent);
     --sidebar-primary-foreground: 0 0% 100%;
@@ -615,6 +615,44 @@
   }
 }
 
+/* Pantau Kelas visual refresh: ivory and plum, with quiet solid surfaces. */
+@layer components {
+  .app-frame-jurnal { background: hsl(var(--bg)); }
+  .glass-panel-jurnal { background: hsl(var(--bg) / .94); border-width: 0 0 1px; border-radius: 0; box-shadow: none; }
+  .card-soft, .app-card { background: hsl(var(--surface)); border-radius: 1.15rem; box-shadow: 0 8px 24px hsl(310 24% 18% / .045); }
+  .card-soft:hover { transform: none; box-shadow: 0 10px 26px hsl(310 24% 18% / .07); }
+  .btn-soft { min-height: 2.75rem; padding: .65rem 1rem; font-family: inherit; font-size: .875rem; }
+  .btn-soft::after { display: none; }
+  .btn-primary-soft { background: hsl(var(--accent)); box-shadow: none; }
+  .btn-primary-soft:hover { background: hsl(var(--accent-hover)); box-shadow: none; transform: none; }
+  .btn-secondary-soft { box-shadow: none; }
+  .input-soft { min-height: 2.75rem; padding: .65rem .8rem; background: hsl(var(--bg)); box-shadow: none; }
+  .input-soft:focus { box-shadow: 0 0 0 3px hsl(var(--accent) / .13); }
+  .font-display, .app-sheet-title, .page-heading h1, .dashboard-hero h1 { font-family: 'Manrope', sans-serif; }
+  .page-heading { padding: .15rem .1rem 0; }
+  .page-heading h1 { font-size: clamp(1.55rem, 4vw, 2rem); }
+  .page-heading-copy { font-size: .875rem; line-height: 1.55; }
+  .app-segmented-control { max-width: none; border-radius: 1rem; background: hsl(var(--bg-2)); }
+  .app-segmented-control button.is-active { color: hsl(var(--accent)); box-shadow: 0 1px 3px hsl(310 24% 18% / .1); }
+  .dashboard-hero { position: relative; overflow: hidden; border-color: hsl(311 42% 31%); background: hsl(311 42% 28%); box-shadow: none; }
+  .dashboard-hero::after { content: ''; position: absolute; width: 12rem; height: 12rem; right: -4rem; top: -6rem; border-radius: 50%; background: hsl(28 70% 80% / .12); }
+  .dashboard-hero > * { position: relative; z-index: 1; }
+  .dashboard-hero-cta { color: hsl(var(--accent)); }
+  .dashboard-hero-cta:hover { background: hsl(310 55% 96%); }
+  .app-icon-button { min-width: 2.75rem; min-height: 2.75rem; background: hsl(var(--surface)); }
+  .app-bottom-sheet { background: hsl(var(--surface)); }
+  .progress-fill { background: hsl(var(--accent)); }
+  .app-frame-jurnal .sidebar-wrapper [data-sidebar="sidebar"] { background: hsl(311 39% 25%); color: hsl(30 45% 96%); }
+  .app-frame-jurnal [data-sidebar="sidebar"] [data-sidebar="menu-button"] { min-height: 2.9rem; border-radius: .8rem; color: hsl(30 30% 86%); }
+  .app-frame-jurnal [data-sidebar="sidebar"] [data-sidebar="menu-button"][data-active="true"] { background: hsl(30 60% 94% / .14); color: hsl(30 60% 96%); }
+  .app-frame-jurnal [data-sidebar="sidebar"] [data-sidebar="group-label"] { color: hsl(30 25% 72%); }
+  @media (max-width: 1023px) {
+    .glass-panel-jurnal { margin-inline: -1rem; padding-inline: 1rem; }
+    .app-frame-jurnal .app-bottom-sheet { border-radius: 1.6rem 1.6rem 0 0; }
+    .app-frame-jurnal .app-bottom-sheet button { min-height: 2.75rem; }
+  }
+}
+
 /* ── Pantau Kelas app shell: visual system shared by every page ────────── */
 @layer components {
   .font-display { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.045em; }
@@ -715,4 +753,33 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
   }
+}
+
+/* Pantau Kelas visual refresh: ivory and plum, with quiet solid surfaces. */
+@layer components {
+  .app-frame-jurnal { background: hsl(var(--bg)); }
+  .glass-panel-jurnal { background: hsl(var(--bg) / .94); border-width: 0 0 1px; border-radius: 0; box-shadow: none; }
+  .card-soft, .app-card { background: hsl(var(--surface)); border-radius: 1.15rem; box-shadow: 0 8px 24px hsl(310 24% 18% / .045); }
+  .card-soft:hover { transform: none; box-shadow: 0 10px 26px hsl(310 24% 18% / .07); }
+  .btn-soft { min-height: 2.75rem; padding: .65rem 1rem; font-family: inherit; font-size: .875rem; }
+  .btn-soft::after { display: none; }
+  .btn-primary-soft { background: hsl(var(--accent)); box-shadow: none; }
+  .btn-primary-soft:hover { background: hsl(var(--accent-hover)); box-shadow: none; transform: none; }
+  .btn-secondary-soft { box-shadow: none; }
+  .input-soft { min-height: 2.75rem; padding: .65rem .8rem; background: hsl(var(--bg)); box-shadow: none; }
+  .input-soft:focus { box-shadow: 0 0 0 3px hsl(var(--accent) / .13); }
+  .font-display, .app-sheet-title, .page-heading h1, .dashboard-hero h1 { font-family: 'Manrope', sans-serif; }
+  .page-heading { padding: .15rem .1rem 0; }
+  .page-heading h1 { font-size: clamp(1.55rem, 4vw, 2rem); }
+  .page-heading-copy { font-size: .875rem; line-height: 1.55; }
+  .app-segmented-control { max-width: none; border-radius: 1rem; background: hsl(var(--bg-2)); }
+  .app-segmented-control button.is-active { color: hsl(var(--accent)); box-shadow: 0 1px 3px hsl(310 24% 18% / .1); }
+  .dashboard-hero { position: relative; overflow: hidden; border-color: hsl(311 42% 31%); background: hsl(311 42% 28%); box-shadow: none; }
+  .dashboard-hero::after { content: ''; position: absolute; width: 12rem; height: 12rem; right: -4rem; top: -6rem; border-radius: 50%; background: hsl(28 70% 80% / .12); }
+  .dashboard-hero > * { position: relative; z-index: 1; }
+  .dashboard-hero-cta { color: hsl(var(--accent)); }
+  .dashboard-hero-cta:hover { background: hsl(310 55% 96%); }
+  .app-icon-button { min-width: 2.75rem; min-height: 2.75rem; background: hsl(var(--surface)); }
+  .app-bottom-sheet { background: hsl(var(--surface)); }
+  .progress-fill { background: hsl(var(--accent)); }
 }
