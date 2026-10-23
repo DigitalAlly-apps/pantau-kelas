@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Download, FileSpreadsheet, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
 import type { PeriodeUjian } from '@/types';
+import { exportCSV, exportXLS } from '@/lib/exportUtils';
 
 const STATUS_LABEL: Record<string, string> = { S: 'Sakit', I: 'Izin', A: 'Alpha' };
 const STATUS_COLOR: Record<string, string> = {
@@ -15,16 +16,31 @@ export function RekapUjianPage() {
   const kelas = kelasList.find(k => k.id === activeKelas);
 
   const [periodeFilter, setPeriodeFilter] = useState<'UTS' | 'UAS'>('UTS');
+  const [semesterFilter, setSemesterFilter] = useState<'ganjil' | 'genap'>(
+    () => semester.semester
+  );
   const [expandedMapel, setExpandedMapel] = useState<string | null>(null);
 
-  // Ambil semua record ujian untuk kelas ini
+  const startYear = Number(semester.tahunAjaran.split('/')[0]);
+
+  /** Cek apakah date masuk dalam semester yang dipilih. */
+  const inSelectedSem = (date: string) => {
+    const d = new Date(`${date}T00:00:00`);
+    return semesterFilter === 'ganjil'
+      ? d.getFullYear() === startYear     && d.getMonth() >= 6
+      : d.getFullYear() === startYear + 1 && d.getMonth() <= 5;
+  };
+
+  // Ambil semua record ujian untuk kelas ini — difilter semester + periode
   const ujianRecords = useMemo(() =>
     absenRecords.filter(a =>
       a.kelasId === activeKelas &&
       a.periodeUjian === periodeFilter &&
-      a.mataPelajaran
+      a.mataPelajaran &&
+      inSelectedSem(a.date)
     ),
-    [absenRecords, activeKelas, periodeFilter]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [absenRecords, activeKelas, periodeFilter, semesterFilter, startYear]
   );
 
   // Daftar mapel unik: gabungkan dari absenRecords DAN confirmedDates
@@ -37,13 +53,19 @@ export function RekapUjianPage() {
     });
     // Tambahkan mapel dari confirmedDates yang mungkin semua hadir (tidak ada exception)
     confirmedDates
-      .filter(c => c.kelasId === activeKelas && c.periodeUjian === periodeFilter && c.mataPelajaran)
+      .filter(c =>
+        c.kelasId === activeKelas &&
+        c.periodeUjian === periodeFilter &&
+        c.mataPelajaran &&
+        inSelectedSem(c.date)
+      )
       .forEach(c => {
         const key = `${c.mataPelajaran}${c.jamUjian ? ` (${c.jamUjian})` : ''}`;
         set.add(key);
       });
     return Array.from(set).sort();
-  }, [ujianRecords, confirmedDates, activeKelas, periodeFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ujianRecords, confirmedDates, activeKelas, periodeFilter, semesterFilter]);
 
   // Daftar tanggal unik per mapel (gabungkan dari absenRecords dan confirmedDates)
   const tanggalPerMapel = useMemo(() => {
@@ -55,7 +77,12 @@ export function RekapUjianPage() {
     });
     // Tambahkan tanggal dari confirmedDates
     confirmedDates
-      .filter(c => c.kelasId === activeKelas && c.periodeUjian === periodeFilter && c.mataPelajaran)
+      .filter(c =>
+        c.kelasId === activeKelas &&
+        c.periodeUjian === periodeFilter &&
+        c.mataPelajaran &&
+        inSelectedSem(c.date)
+      )
       .forEach(c => {
         const key = `${c.mataPelajaran}${c.jamUjian ? ` (${c.jamUjian})` : ''}`;
         if (!map[key]) map[key] = [];
@@ -63,7 +90,8 @@ export function RekapUjianPage() {
       });
     Object.keys(map).forEach(k => map[k].sort());
     return map;
-  }, [ujianRecords, confirmedDates, activeKelas, periodeFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ujianRecords, confirmedDates, activeKelas, periodeFilter, semesterFilter]);
 
   // Siswa yang tidak hadir per mapel: { mapel -> { studentId -> { date, status, keterangan }[] } }
   const absenPerMapel = useMemo(() => {
@@ -89,79 +117,43 @@ export function RekapUjianPage() {
     }).filter(s => s.totalAbsen > 0).sort((a, b) => b.totalAbsen - a.totalAbsen);
   }, [kelas, mapelList, absenPerMapel]);
 
-  const exportExcel = () => {
-    if (!kelas || mapelList.length === 0) return;
+  const semLabel = semesterFilter === 'ganjil' ? 'Sem 1 · Ganjil' : 'Sem 2 · Genap';
+  const semSlug  = semesterFilter === 'ganjil' ? 'sem1' : 'sem2';
 
-    const students = kelas.students;
+  const buildExportData = (separator: string) => {
+    if (!kelas || mapelList.length === 0) return null;
     const headers = ['No', 'Nama', 'NIS', ...mapelList, 'Total Tidak Hadir'];
-
-    const rows = students.map((s, i) => {
+    const rows = kelas.students.map((s, i) => {
       const mapelCols = mapelList.map(m => {
         const records = absenPerMapel[m]?.[s.id];
-        if (!records || records.length === 0) return '✓';
-        return records.map(r => STATUS_LABEL[r.status] || r.status).join(', ');
+        if (!records || records.length === 0) return 'Hadir';
+        return records.map(r => STATUS_LABEL[r.status] || r.status).join(separator);
       });
       const total = mapelList.reduce((acc, m) => acc + (absenPerMapel[m]?.[s.id]?.length || 0), 0);
-      return [i + 1, s.name, s.nis, ...mapelCols, total].join(',');
+      return [i + 1, s.name, s.nis || '', ...mapelCols, total];
     });
-
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `rekap_${periodeFilter}_${kelas.name}_${semester.tahunAjaran.replace('/', '-')}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    return { headers, rows };
   };
 
-  const exportExcelFull = () => {
-    if (!kelas || mapelList.length === 0) return;
-    const students = kelas.students;
+  const handleExportCSV = () => {
+    const data = buildExportData('; ');
+    if (!data || !kelas) return;
+    exportCSV(
+      `rekap_${periodeFilter}_${semSlug}_${kelas.name}_${semester.tahunAjaran.replace('/', '-')}.csv`,
+      data.headers,
+      data.rows
+    );
+  };
 
-    const thStyle = 'border:1px solid #ccc;padding:4px 8px;background:#f0f0f0;font-weight:bold;font-family:Arial;font-size:10pt;text-align:center';
-    const tdStyle = 'border:1px solid #ccc;padding:4px 8px;font-family:Arial;font-size:10pt';
-    const tdGreen = 'border:1px solid #ccc;padding:4px 8px;font-family:Arial;font-size:10pt;background:#e8f5e9;color:#2e7d32;text-align:center';
-    const tdRed   = 'border:1px solid #ccc;padding:4px 8px;font-family:Arial;font-size:10pt;background:#ffebee;color:#c62828;text-align:center';
-
-    const headerRow = `<tr>
-      <th style="${thStyle}">No</th>
-      <th style="${thStyle}">Nama</th>
-      <th style="${thStyle}">NIS</th>
-      ${mapelList.map(m => `<th style="${thStyle}">${m}</th>`).join('')}
-      <th style="${thStyle}">Total Tidak Hadir</th>
-    </tr>`;
-
-    const dataRows = students.map((s, i) => {
-      const mapelCols = mapelList.map(m => {
-        const records = absenPerMapel[m]?.[s.id];
-        if (!records || records.length === 0) return `<td style="${tdGreen}">✓</td>`;
-        const label = records.map(r => STATUS_LABEL[r.status] || r.status).join(', ');
-        return `<td style="${tdRed}">${label}</td>`;
-      }).join('');
-      const total = mapelList.reduce((acc, m) => acc + (absenPerMapel[m]?.[s.id]?.length || 0), 0);
-      return `<tr>
-        <td style="${tdStyle};text-align:center">${i + 1}</td>
-        <td style="${tdStyle}">${s.name}</td>
-        <td style="${tdStyle};font-family:monospace">${s.nis}</td>
-        ${mapelCols}
-        <td style="${total > 0 ? tdRed : tdGreen};font-weight:bold">${total}</td>
-      </tr>`;
-    }).join('');
-
-    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
-      <head><meta charset="utf-8"></head><body>
-      <h3 style="font-family:Arial">Rekap Absensi ${periodeFilter} — Kelas ${kelas.name} — ${semester.tahunAjaran}</h3>
-      <table>${headerRow}${dataRows}</table>
-      </body></html>`;
-
-    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `rekap_${periodeFilter}_${kelas.name}_${semester.tahunAjaran.replace('/', '-')}.xls`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportXLS = () => {
+    const data = buildExportData(', ');
+    if (!data || !kelas) return;
+    exportXLS(
+      `rekap_${periodeFilter}_${semSlug}_${kelas.name}_${semester.tahunAjaran.replace('/', '-')}.xls`,
+      `Rekap ${periodeFilter} ${semLabel} · ${kelas.name}`,
+      data.headers,
+      data.rows
+    );
   };
 
   if (!kelas || kelas.students.length === 0) {
@@ -176,13 +168,31 @@ export function RekapUjianPage() {
   return (
     <div className="flex flex-col gap-5 max-w-4xl mx-auto w-full">
 
-      {/* Filter UTS / UAS */}
+      {/* Baris 1 — Pilih semester */}
+      <div className="flex bg-bg-2 rounded-xl p-1 gap-1">
+        {([['ganjil', 'Sem 1 · Ganjil'], ['genap', 'Sem 2 · Genap']] as const).map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => { setSemesterFilter(id); setExpandedMapel(null); }}
+            className={`flex-1 py-2.5 text-[12px] font-bold rounded-lg transition-all ${
+              semesterFilter === id ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary hover:text-text-secondary'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Baris 2 — Pilih periode ujian */}
       <div className="flex bg-bg-2 rounded-xl p-1 gap-1">
         {(['UTS', 'UAS'] as const).map(p => (
-          <button key={p} onClick={() => setPeriodeFilter(p)}
+          <button
+            key={p}
+            onClick={() => { setPeriodeFilter(p); setExpandedMapel(null); }}
             className={`flex-1 py-2.5 text-[13px] font-bold rounded-lg transition-all ${
               periodeFilter === p ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary hover:text-text-secondary'
-            }`}>
+            }`}
+          >
             {p}
           </button>
         ))}
@@ -191,11 +201,24 @@ export function RekapUjianPage() {
       {mapelList.length === 0 ? (
         <div className="bg-surface rounded-2xl shadow-soft p-8 flex flex-col items-center gap-3 text-center">
           <GraduationCap className="w-10 h-10 text-text-tertiary opacity-40" />
-          <p className="text-sm font-semibold text-text-secondary">Belum ada data absensi {periodeFilter}</p>
-          <p className="text-xs text-text-tertiary">Input absensi dengan periode {periodeFilter} dan isi mata pelajaran terlebih dahulu.</p>
+          <p className="text-sm font-semibold text-text-secondary">
+            Belum ada data {periodeFilter} · {semLabel}
+          </p>
+          <p className="text-xs text-text-tertiary">
+            Input absensi ujian dengan periode <b>{periodeFilter}</b> di semester{' '}
+            <b>{semesterFilter === 'ganjil' ? 'Ganjil' : 'Genap'} {semester.tahunAjaran}</b> dan isi mata pelajaran terlebih dahulu.
+          </p>
         </div>
       ) : (
         <>
+          {/* Label kontekstual */}
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-bold text-text-secondary">
+              Rekap {periodeFilter} · {semLabel}
+            </p>
+            <span className="text-[10px] text-text-tertiary">· {semester.tahunAjaran}</span>
+          </div>
+
           {/* Ringkasan siswa bermasalah */}
           {ringkasanSiswa.length > 0 && (
             <div className="bg-surface rounded-2xl shadow-soft overflow-hidden">
@@ -363,10 +386,10 @@ export function RekapUjianPage() {
 
           {/* Export */}
           <div className="flex gap-3">
-            <button onClick={exportExcel} className="btn-soft btn-secondary-soft flex-1 py-3 gap-2 flex items-center justify-center">
+            <button onClick={handleExportCSV} className="btn-soft btn-secondary-soft flex-1 py-3 gap-2 flex items-center justify-center">
               <Download className="w-4 h-4" /> Export CSV
             </button>
-            <button onClick={exportExcelFull} className="btn-soft btn-primary-soft flex-1 py-3 gap-2 flex items-center justify-center">
+            <button onClick={handleExportXLS} className="btn-soft btn-primary-soft flex-1 py-3 gap-2 flex items-center justify-center">
               <FileSpreadsheet className="w-4 h-4" /> Export Excel
             </button>
           </div>
