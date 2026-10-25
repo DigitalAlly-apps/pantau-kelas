@@ -6,7 +6,7 @@ import { exportCSV, exportXLS, buildDateFilter, EXPORT_PERIOD_LABELS } from '@/l
 import type { ExportSemFilter } from '@/lib/exportUtils';
 
 type SemRow    = 'sem1' | 'sem2' | 'bulan' | 'semua';
-type PeriodeRow = 'semua' | 'UTS' | 'UAS';
+type PeriodeRow = 'semua' | 'harian' | 'UTS' | 'UAS';
 
 export function LaporanPage() {
   const {
@@ -198,11 +198,12 @@ export function LaporanPage() {
 
       {/* Baris 2 — Sub-filter periode (hanya saat Sem 1 / Sem 2 aktif) */}
       {showSubFilter && (
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-0.5">
           {([
-            ['semua', 'Semua periode'],
-            ['UTS',   'UTS'],
-            ['UAS',   'UAS'],
+            ['semua',  'Semua (Harian & Ujian)'],
+            ['harian', 'Hanya Harian'],
+            ['UTS',    'UTS'],
+            ['UAS',    'UAS'],
           ] as [PeriodeRow, string][]).map(([id, label]) => (
             <button
               key={id}
@@ -210,7 +211,7 @@ export function LaporanPage() {
               className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors ${
                 periodeRow === id
                   ? 'bg-surface text-foreground shadow-soft ring-1 ring-border'
-                  : 'bg-bg-2/60 text-text-tertiary'
+                  : 'bg-bg-2/60 text-text-tertiary hover:text-text-secondary'
               }`}
             >
               {label}
@@ -219,11 +220,22 @@ export function LaporanPage() {
         </div>
       )}
 
+      {/* Info status aktif & jumlah data */}
+      <div className="flex items-center justify-between rounded-xl bg-bg-2 px-3.5 py-2 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-primary" />
+          <span className="font-bold text-foreground">{periodLabel}</span>
+          <span className="text-[11px] text-text-tertiary">• TA {semester.tahunAjaran}</span>
+        </div>
+        <span className="text-[11px] text-text-secondary font-medium">
+          {students.filter(s => s.total > 0 || s.aktif > 0).length} siswa dengan catatan
+        </span>
+      </div>
+
       {/* Hint: jadwal UTS/UAS belum dikonfigurasi */}
       {showScheduleHint && (
-        <p className="rounded-xl bg-bg-2 px-3 py-2 text-[11px] text-text-tertiary">
-          ℹ Jadwal {periodeRow} belum dikonfigurasi di Setelan — menampilkan semua record{' '}
-          {periodeRow} {semesterRow === 'sem1' ? 'Semester 1' : 'Semester 2'}
+        <p className="rounded-xl bg-bg-2/70 px-3 py-2 text-[11px] text-text-tertiary">
+          ℹ Jadwal tanggal resmi {periodeRow} belum diatur di Setelan — menampilkan semua record {periodeRow} pada {semesterRow === 'sem1' ? 'Semester 1' : 'Semester 2'}.
         </p>
       )}
 
@@ -264,7 +276,14 @@ export function LaporanPage() {
           </button>
         ))}
         {!shown.length && (
-          <p className="p-8 text-center text-xs text-text-tertiary">Tidak ada siswa ditemukan.</p>
+          <div className="p-8 text-center flex flex-col items-center gap-1.5">
+            <p className="text-xs text-text-tertiary">Tidak ada catatan ketidakhadiran siswa pada filter ini.</p>
+            {(periodeRow === 'UTS' || periodeRow === 'UAS') && (
+              <p className="text-[11px] text-text-secondary max-w-sm">
+                Jika sudah menginput absensi {periodeRow}, pastikan periode dipilih <b>{periodeRow}</b> saat menginput di menu <b>Aktivitas &gt; Absensi &gt; Ujian</b>.
+              </p>
+            )}
+          </div>
         )}
       </section>
 

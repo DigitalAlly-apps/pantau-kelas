@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Search, CheckCircle, Pencil, ChevronDown, CalendarX, X, CalendarDays, BookOpen, AlertCircle } from 'lucide-react';
+import { Search, CheckCircle, Pencil, ChevronDown, CalendarX, X, CalendarDays, BookOpen, AlertCircle, GraduationCap } from 'lucide-react';
 import type { AbsenRecord, PeriodeUjian } from '@/types';
 import { AbsensiKalender } from '@/components/AbsensiKalender';
+import { getSemesterFromDate } from '@/lib/exportUtils';
 
 type AbsenStatus = 'H' | 'S' | 'I' | 'A';
-const PERIODE_OPTIONS: PeriodeUjian[] = ['Harian', 'UTS', 'UAS'];
 
-// Saran keterangan per statusss
+// Saran keterangan per status
 const KETERANGAN_SUGGESTIONS: Record<AbsenStatus, string[]> = {
   H: [],
   S: ['Sakit perut', 'Demam', 'Flu / pilek', 'Sakit kepala', 'Sakit gigi', 'Rawat inap'],
@@ -19,17 +19,43 @@ export function AbsenPage() {
   const {
     kelasList, activeKelas, absenRecords, addAbsenRecords, showToast,
     liburDates, addLiburDate, deleteLiburDate, deleteAbsenRecordsByDateAndJenjang,
-    confirmDate, unconfirmDate, isDateConfirmed,
+    confirmDate, unconfirmDate, isDateConfirmed, semester,
   } = useApp();
   const kelas = kelasList.find(k => k.id === activeKelas);
   const jenjangAktif = kelas?.jenjang || 'SMP';
 
   const [date, setDate]               = useState(new Date().toISOString().split('T')[0]);
-  const [periode, setPeriode]         = useState<PeriodeUjian>('Harian');
+  const [attendanceTab, setAttendanceTab] = useState<'harian' | 'ujian' | 'kalender'>(() => {
+    const saved = sessionStorage.getItem('pk_absen_tab');
+    if (saved === 'ujian' || saved === 'kalender') return saved;
+    return 'harian';
+  });
+  const [periode, setPeriode]         = useState<PeriodeUjian>(() => {
+    const saved = sessionStorage.getItem('pk_absen_periode') as PeriodeUjian;
+    if (saved === 'UTS' || saved === 'UAS') return saved;
+    const savedTab = sessionStorage.getItem('pk_absen_tab');
+    if (savedTab === 'ujian') return 'UTS';
+    return 'Harian';
+  });
   const [mataPelajaran, setMataPelajaran] = useState('');
   const [jamUjian, setJamUjian]       = useState('');
   const [search, setSearch]           = useState('');
   const [localStatus, setLocalStatus] = useState<Record<string, AbsenStatus>>({});
+
+  useEffect(() => {
+    const savedTab = sessionStorage.getItem('pk_absen_tab');
+    const savedPeriode = sessionStorage.getItem('pk_absen_periode') as PeriodeUjian;
+    if (savedTab === 'ujian') {
+      setAttendanceTab('ujian');
+      sessionStorage.removeItem('pk_absen_tab');
+      if (savedPeriode === 'UTS' || savedPeriode === 'UAS') {
+        setPeriode(savedPeriode);
+        sessionStorage.removeItem('pk_absen_periode');
+      } else {
+        setPeriode(p => (p === 'UTS' || p === 'UAS' ? p : 'UTS'));
+      }
+    }
+  }, []);
 
   const handlePeriodeChange = (p: PeriodeUjian) => {
     setPeriode(p);
@@ -48,9 +74,17 @@ export function AbsenPage() {
   const [showLiburForm, setShowLiburForm] = useState(false);
   const [liburKet, setLiburKet] = useState('');
   const [showKalender, setShowKalender] = useState(false);
-  const [attendanceTab, setAttendanceTab] = useState<'harian' | 'ujian' | 'kalender'>('harian');
 
   const isUjian = periode === 'UTS' || periode === 'UAS';
+
+  // Deteksi info semester & jadwal ujian
+  const semInfo = useMemo(() => getSemesterFromDate(date, semester), [date, semester]);
+  const scheduleForSem = semInfo.semester === 'ganjil' ? semester.ganjil : semester.genap;
+  const examSchedule = periode === 'UTS'
+    ? { start: scheduleForSem.utsStart, end: scheduleForSem.utsEnd }
+    : periode === 'UAS'
+    ? { start: scheduleForSem.uasStart, end: scheduleForSem.uasEnd }
+    : null;
 
   // Sesi ujian yang sudah ada di tanggal ini (untuk periode UTS/UAS)
   const sesiUjianHariIni = useMemo(() => {
@@ -272,16 +306,43 @@ export function AbsenPage() {
     <div className="flex flex-col gap-4 w-full max-w-4xl mx-auto overflow-hidden">
 
       <div className="flex rounded-xl bg-bg-2 p-1 gap-1">
-        {([['harian', 'Harian'], ['ujian', 'Ujian'], ['kalender', 'Kalender']] as const).map(([id, label]) => <button key={id} onClick={() => {
-          setAttendanceTab(id);
-          setShowKalender(id === 'kalender');
-          if (id === 'harian') handlePeriodeChange('Harian');
-          if (id === 'ujian' && !isUjian) handlePeriodeChange('UTS');
-        }} className={`flex-1 rounded-lg py-2.5 text-xs font-bold ${attendanceTab === id ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary'}`}>{label}</button>)}
+        {([['harian', 'Harian'], ['ujian', 'Ujian'], ['kalender', 'Kalender']] as const).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => {
+              setAttendanceTab(id);
+              setShowKalender(id === 'kalender');
+              if (id === 'harian') handlePeriodeChange('Harian');
+              if (id === 'ujian') {
+                if (periode !== 'UTS' && periode !== 'UAS') {
+                  handlePeriodeChange('UTS');
+                }
+              }
+            }}
+            className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all ${
+              attendanceTab === id ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary hover:text-text-secondary'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* ── Card kontrol: Tanggal · Periode · Mapel ── */}
       <div className="bg-surface rounded-2xl shadow-soft p-4 flex flex-col gap-3 overflow-hidden">
+
+        {/* Indikator Konteks Semester & Tahun Ajaran */}
+        <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-accent-light/40 border border-accent/15 text-xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+            <span className="font-bold text-foreground truncate">{semInfo.label}</span>
+            <span className="text-[11px] text-text-tertiary flex-shrink-0">• TA {semInfo.tahunAjaran}</span>
+          </div>
+          <span className="text-[11px] font-medium text-text-secondary flex-shrink-0">
+            {semInfo.semester === semester.semester ? 'Semester Berjalan' : 'Arsip Semester'}
+          </span>
+        </div>
 
         {/* Baris 1: Tanggal + tombol Kalender */}
         <div className="flex gap-2 min-w-0">
@@ -303,20 +364,57 @@ export function AbsenPage() {
           </button>
         </div>
 
-        {/* Baris 2: Toggle Harian / UTS / UAS */}
-        {attendanceTab === 'ujian' && <div className="flex bg-bg-2 rounded-xl p-1 gap-1">
-          {PERIODE_OPTIONS.map(p => (
-            <button
-              key={p}
-              onClick={() => handlePeriodeChange(p)}
-              className={`flex-1 py-2 text-[12px] font-semibold rounded-lg transition-all ${
-                periode === p ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary'
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-        </div>}
+        {/* Baris 2: Sub-mode Ujian UTS / UAS & Banner Info */}
+        {attendanceTab === 'ujian' && (
+          <div className="flex flex-col gap-2">
+            <div className="flex bg-bg-2 rounded-xl p-1 gap-1">
+              {(['UTS', 'UAS'] as const).map(p => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => handlePeriodeChange(p)}
+                  className={`flex-1 py-2 text-[12px] font-bold rounded-lg transition-all ${
+                    periode === p ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary hover:text-text-secondary'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            {/* Banner Informasi Jadwal & Konteks Ujian */}
+            <div className="rounded-xl border border-border/70 bg-bg-2/70 p-3 flex flex-col gap-1.5 text-xs">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 font-bold text-foreground">
+                  <GraduationCap className="w-4 h-4 text-primary" />
+                  <span>Mode Input: {periode} — {semInfo.label}</span>
+                </div>
+                {examSchedule?.start && examSchedule?.end ? (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                    Jadwal: {examSchedule.start} s/d {examSchedule.end}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-text-tertiary">
+                    Jadwal resmi {periode} belum diset di Setelan
+                  </span>
+                )}
+              </div>
+
+              {examSchedule?.start && date !== examSchedule.start && (
+                <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[11px]">
+                  <span className="text-text-secondary">Mulai jadwal resmi: <b>{examSchedule.start}</b></span>
+                  <button
+                    type="button"
+                    onClick={() => handleDateChange(examSchedule.start)}
+                    className="text-primary hover:underline font-bold text-[11px]"
+                  >
+                    Gunakan Tanggal Jadwal
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Kalender mini */}
         {showKalender && (

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Download, FileSpreadsheet, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
 import type { PeriodeUjian } from '@/types';
-import { exportCSV, exportXLS } from '@/lib/exportUtils';
+import { exportCSV, exportXLS, isDateInSemester } from '@/lib/exportUtils';
 
 const STATUS_LABEL: Record<string, string> = { S: 'Sakit', I: 'Izin', A: 'Alpha' };
 const STATUS_COLOR: Record<string, string> = {
@@ -12,7 +12,7 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export function RekapUjianPage() {
-  const { kelasList, activeKelas, absenRecords, confirmedDates, semester } = useApp();
+  const { kelasList, activeKelas, absenRecords, confirmedDates, semester, setActiveTab } = useApp();
   const kelas = kelasList.find(k => k.id === activeKelas);
 
   const [periodeFilter, setPeriodeFilter] = useState<'UTS' | 'UAS'>('UTS');
@@ -21,14 +21,9 @@ export function RekapUjianPage() {
   );
   const [expandedMapel, setExpandedMapel] = useState<string | null>(null);
 
-  const startYear = Number(semester.tahunAjaran.split('/')[0]);
-
   /** Cek apakah date masuk dalam semester yang dipilih. */
   const inSelectedSem = (date: string) => {
-    const d = new Date(`${date}T00:00:00`);
-    return semesterFilter === 'ganjil'
-      ? d.getFullYear() === startYear     && d.getMonth() >= 6
-      : d.getFullYear() === startYear + 1 && d.getMonth() <= 5;
+    return isDateInSemester(date, semesterFilter, semester);
   };
 
   // Ambil semua record ujian untuk kelas ini — difilter semester + periode
@@ -40,7 +35,7 @@ export function RekapUjianPage() {
       inSelectedSem(a.date)
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [absenRecords, activeKelas, periodeFilter, semesterFilter, startYear]
+    [absenRecords, activeKelas, periodeFilter, semesterFilter, semester]
   );
 
   // Daftar mapel unik: gabungkan dari absenRecords DAN confirmedDates
@@ -204,10 +199,20 @@ export function RekapUjianPage() {
           <p className="text-sm font-semibold text-text-secondary">
             Belum ada data {periodeFilter} · {semLabel}
           </p>
-          <p className="text-xs text-text-tertiary">
-            Input absensi ujian dengan periode <b>{periodeFilter}</b> di semester{' '}
-            <b>{semesterFilter === 'ganjil' ? 'Ganjil' : 'Genap'} {semester.tahunAjaran}</b> dan isi mata pelajaran terlebih dahulu.
+          <p className="text-xs text-text-tertiary max-w-md">
+            Input absensi ujian dengan memilih tab <b>Ujian &gt; {periodeFilter}</b> di semester{' '}
+            <b>{semesterFilter === 'ganjil' ? 'Ganjil' : 'Genap'} {semester.tahunAjaran}</b> dan pastikan mata pelajaran telah diisi.
           </p>
+          <button
+            onClick={() => {
+              sessionStorage.setItem('pk_absen_tab', 'ujian');
+              sessionStorage.setItem('pk_absen_periode', periodeFilter);
+              setActiveTab('absen');
+            }}
+            className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-soft hover:opacity-90 transition-opacity"
+          >
+            + Input {periodeFilter} Sekarang
+          </button>
         </div>
       ) : (
         <>

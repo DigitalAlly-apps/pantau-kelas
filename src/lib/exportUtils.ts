@@ -21,35 +21,110 @@ export type ExportSemFilter =
   | 'semua'
   | 'bulan'
   | 'sem1'
+  | 'sem1_harian'
   | 'sem1_uts'
   | 'sem1_uas'
   | 'sem2'
+  | 'sem2_harian'
   | 'sem2_uts'
   | 'sem2_uas';
 
 export const EXPORT_PERIOD_LABELS: Record<ExportSemFilter, string> = {
-  semua:    'Semua',
-  bulan:    'Bulan ini',
-  sem1:     'Sem 1 · Ganjil',
-  sem1_uts: 'Sem 1 · UTS',
-  sem1_uas: 'Sem 1 · UAS',
-  sem2:     'Sem 2 · Genap',
-  sem2_uts: 'Sem 2 · UTS',
-  sem2_uas: 'Sem 2 · UAS',
+  semua:       'Semua Periode',
+  bulan:       'Bulan ini',
+  sem1:        'Sem 1 · Semua',
+  sem1_harian: 'Sem 1 · Harian',
+  sem1_uts:    'Sem 1 · UTS',
+  sem1_uas:    'Sem 1 · UAS',
+  sem2:        'Sem 2 · Semua',
+  sem2_harian: 'Sem 2 · Harian',
+  sem2_uts:    'Sem 2 · UTS',
+  sem2_uas:    'Sem 2 · UAS',
 };
+
+// ── Semester & Date Helpers ────────────────────────────────────────────────
+
+/**
+ * Cek apakah sebuah tanggal (YYYY-MM-DD) masuk ke Semester Ganjil atau Genap.
+ * Memperhitungkan tahun ajaran serta jadwal ujian resmi jika diatur.
+ */
+export function isDateInSemester(
+  date: string,
+  targetSem: 'ganjil' | 'genap',
+  sem: SemesterConfig,
+): boolean {
+  if (!date) return false;
+  const startYear = Number(sem.tahunAjaran.split('/')[0]);
+  if (!startYear || isNaN(startYear)) return true;
+
+  const d = new Date(`${date}T00:00:00`);
+  const year = d.getFullYear();
+  const month = d.getMonth(); // 0 = Jan, 6 = Jul, 11 = Des
+
+  const inRange = (s?: string, e?: string) => Boolean(s && e && date >= s && date <= e);
+
+  if (targetSem === 'ganjil') {
+    // 1. Cek jadwal spesifik Ganjil yang diatur di Setelan
+    if (inRange(sem.ganjil.utsStart, sem.ganjil.utsEnd) || inRange(sem.ganjil.uasStart, sem.ganjil.uasEnd)) {
+      return true;
+    }
+    // 2. Standar Semester 1 (Juli s/d Desember)
+    if (year === startYear && month >= 6) {
+      return true;
+    }
+    // 3. Toleransi UAS Semester 1 yang jatuh pada awal Januari tahun berikutnya
+    if (
+      year === startYear + 1 &&
+      month === 0 &&
+      ((sem.ganjil.uasStart && sem.ganjil.uasStart.startsWith(`${startYear + 1}-01`)) ||
+       (sem.ganjil.uasEnd && sem.ganjil.uasEnd.startsWith(`${startYear + 1}-01`)))
+    ) {
+      return true;
+    }
+    return false;
+  } else {
+    // Genap
+    // 1. Cek jadwal spesifik Genap yang diatur di Setelan
+    if (inRange(sem.genap.utsStart, sem.genap.utsEnd) || inRange(sem.genap.uasStart, sem.genap.uasEnd)) {
+      return true;
+    }
+    // 2. Kecualikan jika tanggal ini merupakan jadwal UAS ganjil
+    if (inRange(sem.ganjil.uasStart, sem.ganjil.uasEnd)) {
+      return false;
+    }
+    // 3. Standar Semester 2 (Januari s/d Juni)
+    if (year === startYear + 1 && month <= 5) {
+      return true;
+    }
+    return false;
+  }
+}
+
+/**
+ * Dapatkan informasi semester dari tanggal tertentu untuk indikator UI real-time.
+ */
+export function getSemesterFromDate(
+  date: string,
+  sem: SemesterConfig,
+): { semester: 'ganjil' | 'genap'; label: string; tahunAjaran: string } {
+  const isGanjil = isDateInSemester(date, 'ganjil', sem);
+  return {
+    semester: isGanjil ? 'ganjil' : 'genap',
+    label: isGanjil ? 'Semester 1 (Ganjil)' : 'Semester 2 (Genap)',
+    tahunAjaran: sem.tahunAjaran,
+  };
+}
 
 // ── Date Filter ────────────────────────────────────────────────────────────
 
 /**
  * Kembalikan fungsi filter `(date, periodeUjian?) => boolean`.
  *
- * Jika `periodeUjian` diberikan (absen record), filter mempertimbangkan
- * jenis periode (UTS/UAS). Jika tidak (kasus/catatan), hanya date range
- * yang diperiksa — sehingga kasus/catatan selalu difilter berdasarkan
- * rentang tanggal saja, tidak oleh jenis periodeUjian.
- *
- * Fallback: jika jadwal UTS/UAS belum dikonfigurasi di Setelan (string
- * kosong), inRange() mengembalikan true sehingga data tetap tampil.
+ * - Jika `periodeUjian` diberikan (record absensi):
+ *   Filter langsung mencocokkan jenis periode (Harian/UTS/UAS) dan semester.
+ *   Data UAS/UTS TIDAK akan diblokir oleh jadwal Setelan yang belum diatur.
+ * - Jika `periodeUjian` tidak ada (kasus/catatan):
+ *   Filter menggunakan jadwal rentang tanggal ujian jika dikonfigurasi.
  */
 export function buildDateFilter(
   filter: ExportSemFilter,
@@ -57,19 +132,11 @@ export function buildDateFilter(
 ): (date: string, periodeUjian?: string) => boolean {
   if (filter === 'semua') return () => true;
 
-  const startYear = Number(sem.tahunAjaran.split('/')[0]);
+  const inSem1 = (date: string) => isDateInSemester(date, 'ganjil', sem);
+  const inSem2 = (date: string) => isDateInSemester(date, 'genap', sem);
 
-  const inSem1 = (date: string) => {
-    const d = new Date(`${date}T00:00:00`);
-    return d.getFullYear() === startYear && d.getMonth() >= 6;
-  };
-  const inSem2 = (date: string) => {
-    const d = new Date(`${date}T00:00:00`);
-    return d.getFullYear() === startYear + 1 && d.getMonth() <= 5;
-  };
-  // Jika start/end kosong (belum dikonfigurasi), anggap semua tanggal lolos
-  const inRange = (date: string, start: string, end: string) =>
-    !start || !end || (date >= start && date <= end);
+  const inRange = (date: string, start?: string, end?: string) =>
+    Boolean(start && end && date >= start && date <= end);
 
   switch (filter) {
     case 'bulan': return (date) => {
@@ -81,20 +148,29 @@ export function buildDateFilter(
     case 'sem1': return (date) => inSem1(date);
     case 'sem2': return (date) => inSem2(date);
 
+    case 'sem1_harian': return (date, p) => {
+      if (p !== undefined) return (p === 'Harian' || !p) && inSem1(date);
+      return inSem1(date);
+    };
+    case 'sem2_harian': return (date, p) => {
+      if (p !== undefined) return (p === 'Harian' || !p) && inSem2(date);
+      return inSem2(date);
+    };
+
     case 'sem1_uts': return (date, p) => {
-      if (p !== undefined && p !== 'UTS') return false;
+      if (p !== undefined) return p === 'UTS' && inSem1(date);
       return inSem1(date) && inRange(date, sem.ganjil.utsStart, sem.ganjil.utsEnd);
     };
     case 'sem1_uas': return (date, p) => {
-      if (p !== undefined && p !== 'UAS') return false;
+      if (p !== undefined) return p === 'UAS' && inSem1(date);
       return inSem1(date) && inRange(date, sem.ganjil.uasStart, sem.ganjil.uasEnd);
     };
     case 'sem2_uts': return (date, p) => {
-      if (p !== undefined && p !== 'UTS') return false;
+      if (p !== undefined) return p === 'UTS' && inSem2(date);
       return inSem2(date) && inRange(date, sem.genap.utsStart, sem.genap.utsEnd);
     };
     case 'sem2_uas': return (date, p) => {
-      if (p !== undefined && p !== 'UAS') return false;
+      if (p !== undefined) return p === 'UAS' && inSem2(date);
       return inSem2(date) && inRange(date, sem.genap.uasStart, sem.genap.uasEnd);
     };
 
