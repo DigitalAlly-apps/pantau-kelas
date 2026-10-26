@@ -221,7 +221,7 @@ export function AbsenPage() {
     setExpandedId(null);
     setShowPreview(false);
     setEditingSession(false);
-    showToast('Absensi berhasil disimpan');
+    showToast(isUjian ? `Absensi ${periode} (${mapelKey}) berhasil disimpan!` : 'Absensi Reguler (Harian) berhasil disimpan!');
 
     // UX: Saat ujian, auto-reset mapel & jam untuk input sesi berikutnya
     if (isUjian) {
@@ -365,6 +365,24 @@ export function AbsenPage() {
           </button>
         </div>
 
+        {/* Banner informasi jika di tab Harian (Reguler) */}
+        {attendanceTab === 'harian' && (
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 flex items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse" />
+              <div>
+                <p className="font-bold text-foreground">Mode: Absensi Reguler (Harian)</p>
+                <p className="text-[11px] text-text-tertiary">
+                  Kehadiran belajar harian biasa • Masuk ke filter <b>Harian</b> &amp; <b>Semua</b> di Laporan
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 flex-shrink-0">
+              Reguler
+            </span>
+          </div>
+        )}
+
         {/* Baris 2: Sub-mode Ujian UTS / UAS & Banner Info */}
         {attendanceTab === 'ujian' && (
           <div className="flex flex-col gap-2">
@@ -384,34 +402,36 @@ export function AbsenPage() {
             </div>
 
             {/* Banner Informasi Jadwal & Konteks Ujian */}
-            <div className="rounded-xl border border-border/70 bg-bg-2/70 p-3 flex flex-col gap-1.5 text-xs">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 flex flex-col gap-1.5 text-xs">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 font-bold text-foreground">
                   <GraduationCap className="w-4 h-4 text-primary" />
-                  <span>Mode Input: {periode} — {semInfo.label}</span>
+                  <span>Mode: Ujian {periode} — {semInfo.label}</span>
                 </div>
-                {examSchedule?.start && examSchedule?.end ? (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                    Jadwal: {examSchedule.start} s/d {examSchedule.end}
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-text-tertiary">
-                    Jadwal resmi {periode} belum diset di Setelan
-                  </span>
-                )}
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                  {periode}
+                </span>
               </div>
-
-              {examSchedule?.start && date !== examSchedule.start && (
+              <p className="text-[11px] text-text-tertiary">
+                Kehadiran per mapel • Masuk ke filter <b>{periode}</b> &amp; <b>Semua</b> di Laporan &amp; Rekap Ujian
+              </p>
+              {examSchedule?.start && examSchedule?.end ? (
                 <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[11px]">
-                  <span className="text-text-secondary">Mulai jadwal resmi: <b>{examSchedule.start}</b></span>
-                  <button
-                    type="button"
-                    onClick={() => handleDateChange(examSchedule.start)}
-                    className="text-primary hover:underline font-bold text-[11px]"
-                  >
-                    Gunakan Tanggal Jadwal
-                  </button>
+                  <span className="text-text-secondary">Jadwal resmi di Setelan: <b>{examSchedule.start} s/d {examSchedule.end}</b></span>
+                  {date !== examSchedule.start && (
+                    <button
+                      type="button"
+                      onClick={() => handleDateChange(examSchedule.start)}
+                      className="text-primary hover:underline font-bold text-[11px]"
+                    >
+                      Gunakan Tanggal Jadwal
+                    </button>
+                  )}
                 </div>
+              ) : (
+                <p className="text-[10px] text-text-tertiary pt-0.5 border-t border-border/30">
+                  ℹ️ Jadwal tanggal resmi {periode} belum diset di Setelan (data tetap aman tercatat sebagai {periode}).
+                </p>
               )}
             </div>
           </div>
@@ -577,15 +597,16 @@ export function AbsenPage() {
         <div className="bg-semantic-blue-light rounded-xl px-4 py-3 flex items-center justify-between gap-3">
           <div>
             <p className="text-[13px] text-semantic-blue font-semibold">
+              {isUjian
+                ? `Tersimpan: Ujian ${periode}${mataPelajaran ? ` · ${mataPelajaran}` : ''}`
+                : 'Tersimpan: Absensi Reguler (Harian)'}
+              {' — '}
               {existingForDate.length === 0 && isConfirmed
-                ? 'Semua siswa hadir pada hari ini'
-                : 'Data absensi sudah ada'}
-              {isUjian && mataPelajaran && (
-                <span className="ml-1.5 text-[11px] font-normal opacity-80">· {mataPelajaran}</span>
-              )}
+                ? 'Semua hadir ✓'
+                : `${existingForDate.filter(a => a.status !== 'H').length} siswa tidak hadir`}
             </p>
             <p className="text-[11px] text-semantic-blue/70 mt-0.5">
-              {existingForDate.filter(a => a.status !== 'H').length} siswa tidak hadir tercatat
+              Data ini tersimpan pada filter <b>{isUjian ? periode : 'Harian'}</b> dan <b>Semua</b>. Klik Edit untuk mengubah.
             </p>
           </div>
           <button onClick={startEdit}
@@ -697,13 +718,26 @@ export function AbsenPage() {
       {/* Preview & Simpan */}
       {!showPreview ? (
         <button onClick={() => setShowPreview(true)} className="btn-soft btn-primary-soft w-full py-3">
-          {isEditMode ? 'Edit & Simpan' : 'Pratinjau & Simpan'}
+          {isEditMode
+            ? `Edit & Simpan ${isUjian ? `Ujian ${periode}` : 'Absensi Harian'}`
+            : `Pratinjau & Simpan ${isUjian ? `Ujian ${periode}` : 'Absensi Harian'}`}
         </button>
       ) : (
         <div className="flex flex-col gap-3">
-          <h3 className="label-upper">
-            Pratinjau — {date} · {periode}{mataPelajaran && mataPelajaran !== '__custom' ? ` · ${mataPelajaran}` : ''}{jamUjian ? ` (${jamUjian})` : ''}
-          </h3>
+          <div className="rounded-xl bg-bg-2 p-3 flex items-center justify-between gap-2 text-xs">
+            <div>
+              <p className="font-bold text-foreground">
+                Pratinjau — {isUjian ? `Ujian ${periode}` : 'Absensi Reguler (Harian)'}
+              </p>
+              <p className="text-[11px] text-text-secondary">
+                {date} · {semInfo.label}{mataPelajaran ? ` · ${mataPelajaran}` : ''}{jamUjian ? ` (${jamUjian})` : ''}
+              </p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              Target: {isUjian ? periode : 'Harian'} &amp; Semua
+            </span>
+          </div>
+
           <div className="bg-surface rounded-2xl shadow-soft overflow-hidden">
             {kelas?.students.map((s, i, arr) => {
               const st  = getStatus(s.id);
@@ -732,7 +766,9 @@ export function AbsenPage() {
           </div>
           <div className="flex gap-3">
             <button onClick={() => setShowPreview(false)} className="btn-soft btn-secondary-soft flex-1 py-3">Batal</button>
-            <button onClick={handleSave} className="btn-soft btn-primary-soft flex-1 py-3">Simpan</button>
+            <button onClick={handleSave} className="btn-soft btn-primary-soft flex-1 py-3">
+              {isUjian ? `Simpan Ujian ${periode}` : 'Simpan Absensi Harian'}
+            </button>
           </div>
         </div>
       )}
