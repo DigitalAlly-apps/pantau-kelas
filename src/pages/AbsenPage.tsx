@@ -103,10 +103,11 @@ export function AbsenPage() {
     absenRecords.filter(a =>
       a.date === date &&
       a.kelasId === activeKelas &&
-      // Saat UTS/UAS: filter by mapel & jamUjian supaya multi-sesi tidak saling timpa
-      (!isUjian || !mataPelajaran || (a.mataPelajaran === mataPelajaran && (!jamUjian || a.jamUjian === jamUjian)))
+      (isUjian
+        ? a.periodeUjian === periode && (!mataPelajaran || a.mataPelajaran === mataPelajaran) && (!jamUjian || a.jamUjian === jamUjian)
+        : (a.periodeUjian === 'Harian' || !a.periodeUjian))
     ),
-    [absenRecords, date, activeKelas, isUjian, mataPelajaran, jamUjian]
+    [absenRecords, date, activeKelas, isUjian, periode, mataPelajaran, jamUjian]
   );
 
   const liburForDate = useMemo(() =>
@@ -118,7 +119,7 @@ export function AbsenPage() {
   const isConfirmed = isDateConfirmed(
     activeKelas,
     date,
-    isUjian ? periode : undefined,
+    isUjian ? periode : 'Harian',
     isUjian ? mataPelajaran : undefined,
     isUjian ? jamUjian : undefined
   );
