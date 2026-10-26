@@ -320,7 +320,7 @@ export function AbsenPage() {
     <div className="flex flex-col gap-4 w-full max-w-4xl mx-auto overflow-hidden">
 
       <div className="flex rounded-xl bg-bg-2 p-1 gap-1">
-        {([['harian', 'Harian'], ['ujian', 'Ujian'], ['kalender', 'Kalender']] as const).map(([id, label]) => (
+        {([['harian', 'Absensi Reguler Kelas'], ['ujian', 'Presensi Sesi Ujian (Opsional)'], ['kalender', 'Kalender']] as const).map(([id, label]) => (
           <button
             key={id}
             type="button"
@@ -383,8 +383,8 @@ export function AbsenPage() {
           <div className="flex flex-col gap-2">
             <div className="flex bg-bg-2 rounded-xl p-1 gap-1">
               {([
-                ['pra_uts', '📘 Sebelum UTS (Rapor UTS)'],
-                ['pra_uas', '📙 Sebelum UAS (Rapor UAS)'],
+                ['pra_uts', '🎯 Reguler UTS (Rapor UTS)'],
+                ['pra_uas', '🏆 Reguler UAS (Rapor UAS)'],
               ] as const).map(([subId, subLabel]) => (
                 <button
                   key={subId}
@@ -406,12 +406,12 @@ export function AbsenPage() {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse" />
                 <div>
                   <p className="font-bold text-foreground">
-                    Mode: Absensi Harian — {regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS (Rapor UTS)' : 'Sebelum UAS (Rapor UAS)'}
+                    Mode: Absensi Reguler Kelas — {regulerSubPeriode === 'pra_uts' ? 'Periode UTS (Rapor UTS)' : 'Periode UAS (Rapor UAS)'}
                   </p>
                   <p className="text-[11px] text-text-tertiary">
                     {regulerSubPeriode === 'pra_uts'
-                      ? 'Tersimpan untuk rekap Rapor UTS & Rapor Akhir Semester (1 Sem Penuh)'
-                      : 'Tersimpan untuk rekap Rapor UAS & Rapor Akhir Semester (1 Sem Penuh)'}
+                      ? 'Kehadiran harian dicatat untuk nilai Rapor UTS & Rapor Akhir Semester (1 Sem Penuh)'
+                      : 'Kehadiran harian dicatat untuk nilai Rapor Akhir Semester (UAS)'}
                   </p>
                 </div>
               </div>
@@ -758,15 +758,15 @@ export function AbsenPage() {
       {!showPreview ? (
         <button onClick={() => setShowPreview(true)} className="btn-soft btn-primary-soft w-full py-3">
           {isEditMode
-            ? `Edit & Simpan ${isUjian ? `Ujian ${periode}` : `Absensi Harian (${regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS' : 'Sebelum UAS'})`}`
-            : `Pratinjau & Simpan ${isUjian ? `Ujian ${periode}` : `Absensi Harian (${regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS' : 'Sebelum UAS'})`}`}
+            ? `Edit & Simpan ${isUjian ? `Ujian ${periode}` : `Absensi (${regulerSubPeriode === 'pra_uts' ? 'Reguler UTS' : 'Reguler UAS'})`}`
+            : `Pratinjau & Simpan ${isUjian ? `Ujian ${periode}` : `Absensi (${regulerSubPeriode === 'pra_uts' ? 'Reguler UTS' : 'Reguler UAS'})`}`}
         </button>
       ) : (
         <div className="flex flex-col gap-3">
           <div className="rounded-xl bg-bg-2 p-3 flex items-center justify-between gap-2 text-xs">
             <div>
               <p className="font-bold text-foreground">
-                Pratinjau — {isUjian ? `Ujian ${periode}` : `Absensi Harian (${regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS' : 'Sebelum UAS'})`}
+                Pratinjau — {isUjian ? `Ujian ${periode}` : `Absensi Reguler (${regulerSubPeriode === 'pra_uts' ? 'Periode UTS' : 'Periode UAS'})`}
               </p>
               <p className="text-[11px] text-text-secondary">
                 {date} · {semInfo.label}{mataPelajaran ? ` · ${mataPelajaran}` : ''}{jamUjian ? ` (${jamUjian})` : ''}
@@ -806,7 +806,7 @@ export function AbsenPage() {
           <div className="flex gap-3">
             <button onClick={() => setShowPreview(false)} className="btn-soft btn-secondary-soft flex-1 py-3">Batal</button>
             <button onClick={handleSave} className="btn-soft btn-primary-soft flex-1 py-3">
-              {isUjian ? `Simpan Ujian ${periode}` : `Simpan Harian (${regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS' : 'Sebelum UAS'})`}
+              {isUjian ? `Simpan Ujian ${periode}` : `Simpan Absensi (${regulerSubPeriode === 'pra_uts' ? 'Reguler UTS' : 'Reguler UAS'})`}
             </button>
           </div>
         </div>

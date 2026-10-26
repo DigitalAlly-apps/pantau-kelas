@@ -19,8 +19,8 @@ export function LaporanPage() {
   const [semesterRow, setSemesterRow] = useState<SemRow>(() =>
     semester.semester === 'ganjil' ? 'sem1' : 'sem2'
   );
-  // Baris 2: sub-filter periode (hanya aktif saat sem1/sem2 dipilih)
-  const [periodeRow, setPeriodeRow] = useState<PeriodeRow>('semua');
+  // Baris 2: sub-filter periode (default: absensi reguler 1 semester penuh)
+  const [periodeRow, setPeriodeRow] = useState<PeriodeRow>('harian');
   const [query, setQuery]           = useState('');
   const [studentId, setStudentId]   = useState<string | null>(null);
   const [showRecap, setShowRecap]   = useState(false);
@@ -166,11 +166,12 @@ export function LaporanPage() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="label-upper">Buku Induk · {kelas.name}</p>
-          <h2 className="mt-1 text-lg font-bold">Siswa</h2>
+          <h2 className="mt-1 text-lg font-bold">Rekap Absensi Siswa</h2>
+          <p className="text-xs text-text-tertiary">Rekap kehadiran reguler UTS &amp; UAS untuk rapor semester.</p>
         </div>
         <button
           onClick={() => setShowRecap(true)}
-          className="rounded-xl bg-bg-2 px-3 py-2 text-xs font-bold text-text-secondary"
+          className="rounded-xl bg-bg-2 px-3 py-2 text-xs font-bold text-text-secondary hover:text-foreground hover:bg-bg-3 transition-colors"
         >
           Rekap & export
         </button>
@@ -186,7 +187,7 @@ export function LaporanPage() {
         ] as [SemRow, string][]).map(([id, label]) => (
           <button
             key={id}
-            onClick={() => { setSemesterRow(id); setPeriodeRow('semua'); }}
+            onClick={() => { setSemesterRow(id); setPeriodeRow('harian'); }}
             className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors ${
               semesterRow === id ? 'bg-primary text-primary-foreground' : 'bg-bg-2 text-text-secondary'
             }`}
@@ -196,14 +197,14 @@ export function LaporanPage() {
         ))}
       </div>
 
-      {/* Baris 2 — Sub-filter periode (hanya saat Sem 1 / Sem 2 aktif) */}
+      {/* Baris 2 — Sub-filter periode (Fokus pada Rapor UTS & UAS) */}
       {showSubFilter && (
         <div className="flex gap-2 overflow-x-auto pb-0.5">
           {([
+            ['harian_pra_uts', '🎯 Rapor UTS (Pra-UTS)'],
+            ['harian',         '🏆 Rapor UAS (1 Sem Penuh)'],
+            ['harian_pra_uas', '📙 Pasca-UTS (s.d. UAS)'],
             ['semua',          'Semua Data'],
-            ['harian',         'Harian (1 Sem Penuh)'],
-            ['harian_pra_uts', 'Harian (Rapor UTS)'],
-            ['harian_pra_uas', 'Harian (Pasca-UTS / Rapor UAS)'],
             ['UTS',            'Ujian UTS'],
             ['UAS',            'Ujian UAS'],
           ] as [PeriodeRow, string][]).map(([id, label]) => (
