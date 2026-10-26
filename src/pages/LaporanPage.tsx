@@ -6,7 +6,7 @@ import { exportCSV, exportXLS, buildDateFilter, EXPORT_PERIOD_LABELS } from '@/l
 import type { ExportSemFilter } from '@/lib/exportUtils';
 
 type SemRow    = 'sem1' | 'sem2' | 'bulan' | 'semua';
-type PeriodeRow = 'semua' | 'harian' | 'UTS' | 'UAS';
+type PeriodeRow = 'semua' | 'harian' | 'harian_pra_uts' | 'harian_pra_uas' | 'UTS' | 'UAS';
 
 export function LaporanPage() {
   const {
@@ -49,7 +49,7 @@ export function LaporanPage() {
   const students = useMemo(() => (kelas?.students || []).map(student => {
     const absen = absenRecords.filter(a =>
       a.kelasId === activeKelas && a.studentId === student.id &&
-      dateFilter(a.date, a.periodeUjian)
+      dateFilter(a.date, a.periodeUjian, a.subPeriode || a.jamUjian)
     );
     const aktif = kasusRecords.filter(k =>
       k.kelasId === activeKelas && k.studentId === student.id &&
@@ -90,7 +90,7 @@ export function LaporanPage() {
   if (selected) {
     const events = [
       ...absenRecords
-        .filter(a => a.kelasId === activeKelas && a.studentId === selected.id && dateFilter(a.date, a.periodeUjian))
+        .filter(a => a.kelasId === activeKelas && a.studentId === selected.id && dateFilter(a.date, a.periodeUjian, a.subPeriode || a.jamUjian))
         .map(a => ({
           id: `a${a.id}`, date: a.date,
           title: a.status === 'S' ? 'Sakit' : a.status === 'I' ? 'Izin' : 'Alpha',
@@ -200,10 +200,12 @@ export function LaporanPage() {
       {showSubFilter && (
         <div className="flex gap-2 overflow-x-auto pb-0.5">
           {([
-            ['semua',  'Semua (Harian & Ujian)'],
-            ['harian', 'Hanya Harian'],
-            ['UTS',    'UTS'],
-            ['UAS',    'UAS'],
+            ['semua',          'Semua Data'],
+            ['harian',         'Harian (1 Sem Penuh)'],
+            ['harian_pra_uts', 'Harian (Rapor UTS)'],
+            ['harian_pra_uas', 'Harian (Pasca-UTS / Rapor UAS)'],
+            ['UTS',            'Ujian UTS'],
+            ['UAS',            'Ujian UAS'],
           ] as [PeriodeRow, string][]).map(([id, label]) => (
             <button
               key={id}

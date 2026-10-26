@@ -22,24 +22,32 @@ export type ExportSemFilter =
   | 'bulan'
   | 'sem1'
   | 'sem1_harian'
+  | 'sem1_harian_pra_uts'
+  | 'sem1_harian_pra_uas'
   | 'sem1_uts'
   | 'sem1_uas'
   | 'sem2'
   | 'sem2_harian'
+  | 'sem2_harian_pra_uts'
+  | 'sem2_harian_pra_uas'
   | 'sem2_uts'
   | 'sem2_uas';
 
 export const EXPORT_PERIOD_LABELS: Record<ExportSemFilter, string> = {
-  semua:       'Semua Periode',
-  bulan:       'Bulan ini',
-  sem1:        'Sem 1 · Semua',
-  sem1_harian: 'Sem 1 · Harian',
-  sem1_uts:    'Sem 1 · UTS',
-  sem1_uas:    'Sem 1 · UAS',
-  sem2:        'Sem 2 · Semua',
-  sem2_harian: 'Sem 2 · Harian',
-  sem2_uts:    'Sem 2 · UTS',
-  sem2_uas:    'Sem 2 · UAS',
+  semua:               'Semua Periode',
+  bulan:               'Bulan ini',
+  sem1:                'Sem 1 · Semua Data',
+  sem1_harian:         'Sem 1 · Harian (1 Sem Penuh)',
+  sem1_harian_pra_uts: 'Sem 1 · Harian (Rapor UTS)',
+  sem1_harian_pra_uas: 'Sem 1 · Harian (Pasca-UTS / Rapor UAS)',
+  sem1_uts:            'Sem 1 · Ujian UTS',
+  sem1_uas:            'Sem 1 · Ujian UAS',
+  sem2:                'Sem 2 · Semua Data',
+  sem2_harian:         'Sem 2 · Harian (1 Sem Penuh)',
+  sem2_harian_pra_uts: 'Sem 2 · Harian (Rapor UTS)',
+  sem2_harian_pra_uas: 'Sem 2 · Harian (Pasca-UTS / Rapor UAS)',
+  sem2_uts:            'Sem 2 · Ujian UTS',
+  sem2_uas:            'Sem 2 · Ujian UAS',
 };
 
 // ── Semester & Date Helpers ────────────────────────────────────────────────
@@ -115,10 +123,42 @@ export function getSemesterFromDate(
   };
 }
 
+/**
+ * Cek apakah record absensi harian masuk ke 'pra_uts' (Sebelum UTS / Rapor UTS)
+ * atau 'pra_uas' (Sebelum UAS / Pasca-UTS).
+ * 1. Prioritas tag eksplisit (misal subPeriode atau jamUjian === 'pra_uts' | 'pra_uas')
+ * 2. Cek jadwal UTS di Setelan jika diisi
+ * 3. Fallback bulan tengah semester (Bulan <= 8 untuk Ganjil, Bulan <= 2 untuk Genap)
+ */
+export function isAbsenPraUts(
+  date: string,
+  targetSem: 'ganjil' | 'genap',
+  sem: SemesterConfig,
+  recordSubPeriode?: string,
+): boolean {
+  if (recordSubPeriode === 'pra_uts') return true;
+  if (recordSubPeriode === 'pra_uas') return false;
+
+  const schedule = targetSem === 'ganjil' ? sem.ganjil : sem.genap;
+  if (schedule.utsStart) {
+    const cutoff = schedule.utsEnd || schedule.utsStart;
+    return date <= cutoff;
+  }
+
+  // Fallback bulan
+  const d = new Date(`${date}T00:00:00`);
+  const month = d.getMonth(); // 0 = Jan .. 11 = Dec
+  if (targetSem === 'ganjil') {
+    return month <= 8; // Juli (6), Agustus (7), September (8) adalah pra-uts
+  } else {
+    return month <= 2; // Januari (0), Februari (1), Maret (2) adalah pra-uts
+  }
+}
+
 // ── Date Filter ────────────────────────────────────────────────────────────
 
 /**
- * Kembalikan fungsi filter `(date, periodeUjian?) => boolean`.
+ * Kembalikan fungsi filter `(date, periodeUjian?, subPeriode?) => boolean`.
  *
  * - Jika `periodeUjian` diberikan (record absensi):
  *   Filter langsung mencocokkan jenis periode (Harian/UTS/UAS) dan semester.
@@ -129,7 +169,7 @@ export function getSemesterFromDate(
 export function buildDateFilter(
   filter: ExportSemFilter,
   sem: SemesterConfig,
-): (date: string, periodeUjian?: string) => boolean {
+): (date: string, periodeUjian?: string, subPeriode?: string) => boolean {
   if (filter === 'semua') return () => true;
 
   const inSem1 = (date: string) => isDateInSemester(date, 'ganjil', sem);
@@ -152,9 +192,26 @@ export function buildDateFilter(
       if (p !== undefined) return (p === 'Harian' || !p) && inSem1(date);
       return inSem1(date);
     };
+    case 'sem1_harian_pra_uts': return (date, p, subP) => {
+      if (p !== undefined && p !== 'Harian') return false;
+      return inSem1(date) && isAbsenPraUts(date, 'ganjil', sem, subP);
+    };
+    case 'sem1_harian_pra_uas': return (date, p, subP) => {
+      if (p !== undefined && p !== 'Harian') return false;
+      return inSem1(date) && !isAbsenPraUts(date, 'ganjil', sem, subP);
+    };
+
     case 'sem2_harian': return (date, p) => {
       if (p !== undefined) return (p === 'Harian' || !p) && inSem2(date);
       return inSem2(date);
+    };
+    case 'sem2_harian_pra_uts': return (date, p, subP) => {
+      if (p !== undefined && p !== 'Harian') return false;
+      return inSem2(date) && isAbsenPraUts(date, 'genap', sem, subP);
+    };
+    case 'sem2_harian_pra_uas': return (date, p, subP) => {
+      if (p !== undefined && p !== 'Harian') return false;
+      return inSem2(date) && !isAbsenPraUts(date, 'genap', sem, subP);
     };
 
     case 'sem1_uts': return (date, p) => {

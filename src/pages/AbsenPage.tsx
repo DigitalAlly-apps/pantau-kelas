@@ -37,6 +37,12 @@ export function AbsenPage() {
     if (savedTab === 'ujian') return 'UTS';
     return 'Harian';
   });
+  const [regulerSubPeriode, setRegulerSubPeriode] = useState<'pra_uts' | 'pra_uas'>(() => {
+    const saved = localStorage.getItem('pk_reguler_subperiode');
+    if (saved === 'pra_uts' || saved === 'pra_uas') return saved;
+    const m = new Date().getMonth();
+    return m >= 9 || (m >= 3 && m <= 5) ? 'pra_uas' : 'pra_uts';
+  });
   const [mataPelajaran, setMataPelajaran] = useState('');
   const [jamUjian, setJamUjian]       = useState('');
   const [search, setSearch]           = useState('');
@@ -66,6 +72,11 @@ export function AbsenPage() {
     setExpandedId(null);
     setShowPreview(false);
     setEditingSession(false);
+  };
+
+  const handleSubPeriodeChange = (sub: 'pra_uts' | 'pra_uas') => {
+    setRegulerSubPeriode(sub);
+    localStorage.setItem('pk_reguler_subperiode', sub);
   };
   const [localKet, setLocalKet]       = useState<Record<string, string>>({});  // keterangan per siswa
   const [expandedId, setExpandedId]   = useState<string | null>(null);         // siswa yang sedang buka keterangan
@@ -199,6 +210,7 @@ export function AbsenPage() {
     }
     const mapelKey = mataPelajaran.trim();
     const jamKey = isUjian ? jamUjian.trim() : '';
+    const subLabel = regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS' : 'Sebelum UAS';
     const records: AbsenRecord[] = kelas.students.map(s => ({
       // ID include mapel & jam saat UTS/UAS supaya multi-sesi per hari tidak saling timpa
       id:             isUjian && mapelKey
@@ -211,8 +223,9 @@ export function AbsenPage() {
       keterangan:     getKet(s.id) || undefined,
       kelasId:        activeKelas,
       periodeUjian:   periode,
+      subPeriode:     isUjian ? undefined : regulerSubPeriode,
       mataPelajaran:  mapelKey || undefined,
-      jamUjian:       jamKey || undefined,
+      jamUjian:       isUjian ? (jamKey || undefined) : regulerSubPeriode,
     }));
     addAbsenRecords(records);
     confirmDate(activeKelas, date, periode, mapelKey || undefined, jamKey || undefined);
@@ -221,7 +234,7 @@ export function AbsenPage() {
     setExpandedId(null);
     setShowPreview(false);
     setEditingSession(false);
-    showToast(isUjian ? `Absensi ${periode} (${mapelKey}) berhasil disimpan!` : 'Absensi Reguler (Harian) berhasil disimpan!');
+    showToast(isUjian ? `Absensi ${periode} (${mapelKey}) berhasil disimpan!` : `Absensi Harian (${subLabel}) berhasil disimpan!`);
 
     // UX: Saat ujian, auto-reset mapel & jam untuk input sesi berikutnya
     if (isUjian) {
@@ -365,21 +378,47 @@ export function AbsenPage() {
           </button>
         </div>
 
-        {/* Banner informasi jika di tab Harian (Reguler) */}
+        {/* Sub-mode & Banner informasi di tab Harian (Reguler) */}
         {attendanceTab === 'harian' && (
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 flex items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse" />
-              <div>
-                <p className="font-bold text-foreground">Mode: Absensi Reguler (Harian)</p>
-                <p className="text-[11px] text-text-tertiary">
-                  Kehadiran belajar harian biasa • Masuk ke filter <b>Harian</b> &amp; <b>Semua</b> di Laporan
-                </p>
-              </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex bg-bg-2 rounded-xl p-1 gap-1">
+              {([
+                ['pra_uts', '📘 Sebelum UTS (Rapor UTS)'],
+                ['pra_uas', '📙 Sebelum UAS (Rapor UAS)'],
+              ] as const).map(([subId, subLabel]) => (
+                <button
+                  key={subId}
+                  type="button"
+                  onClick={() => handleSubPeriodeChange(subId)}
+                  className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-all ${
+                    regulerSubPeriode === subId
+                      ? 'bg-surface shadow-soft text-foreground'
+                      : 'text-text-tertiary hover:text-text-secondary'
+                  }`}
+                >
+                  {subLabel}
+                </button>
+              ))}
             </div>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 flex-shrink-0">
-              Reguler
-            </span>
+
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 flex items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse" />
+                <div>
+                  <p className="font-bold text-foreground">
+                    Mode: Absensi Harian — {regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS (Rapor UTS)' : 'Sebelum UAS (Rapor UAS)'}
+                  </p>
+                  <p className="text-[11px] text-text-tertiary">
+                    {regulerSubPeriode === 'pra_uts'
+                      ? 'Tersimpan untuk rekap Rapor UTS & Rapor Akhir Semester (1 Sem Penuh)'
+                      : 'Tersimpan untuk rekap Rapor UAS & Rapor Akhir Semester (1 Sem Penuh)'}
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 flex-shrink-0">
+                {regulerSubPeriode === 'pra_uts' ? 'Pra-UTS' : 'Pra-UAS'}
+              </span>
+            </div>
           </div>
         )}
 
@@ -719,22 +758,22 @@ export function AbsenPage() {
       {!showPreview ? (
         <button onClick={() => setShowPreview(true)} className="btn-soft btn-primary-soft w-full py-3">
           {isEditMode
-            ? `Edit & Simpan ${isUjian ? `Ujian ${periode}` : 'Absensi Harian'}`
-            : `Pratinjau & Simpan ${isUjian ? `Ujian ${periode}` : 'Absensi Harian'}`}
+            ? `Edit & Simpan ${isUjian ? `Ujian ${periode}` : `Absensi Harian (${regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS' : 'Sebelum UAS'})`}`
+            : `Pratinjau & Simpan ${isUjian ? `Ujian ${periode}` : `Absensi Harian (${regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS' : 'Sebelum UAS'})`}`}
         </button>
       ) : (
         <div className="flex flex-col gap-3">
           <div className="rounded-xl bg-bg-2 p-3 flex items-center justify-between gap-2 text-xs">
             <div>
               <p className="font-bold text-foreground">
-                Pratinjau — {isUjian ? `Ujian ${periode}` : 'Absensi Reguler (Harian)'}
+                Pratinjau — {isUjian ? `Ujian ${periode}` : `Absensi Harian (${regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS' : 'Sebelum UAS'})`}
               </p>
               <p className="text-[11px] text-text-secondary">
                 {date} · {semInfo.label}{mataPelajaran ? ` · ${mataPelajaran}` : ''}{jamUjian ? ` (${jamUjian})` : ''}
               </p>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-              Target: {isUjian ? periode : 'Harian'} &amp; Semua
+              Target: {isUjian ? periode : (regulerSubPeriode === 'pra_uts' ? 'Rapor UTS & 1 Sem' : 'Rapor UAS & 1 Sem')}
             </span>
           </div>
 
@@ -767,7 +806,7 @@ export function AbsenPage() {
           <div className="flex gap-3">
             <button onClick={() => setShowPreview(false)} className="btn-soft btn-secondary-soft flex-1 py-3">Batal</button>
             <button onClick={handleSave} className="btn-soft btn-primary-soft flex-1 py-3">
-              {isUjian ? `Simpan Ujian ${periode}` : 'Simpan Absensi Harian'}
+              {isUjian ? `Simpan Ujian ${periode}` : `Simpan Harian (${regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS' : 'Sebelum UAS'})`}
             </button>
           </div>
         </div>

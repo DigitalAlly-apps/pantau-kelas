@@ -70,6 +70,32 @@ describe('Ujian & Semester Date Filter', () => {
     expect(filterSem1Harian('2026-10-26', 'UTS')).toBe(false);
   });
 
+  it('correctly filters Harian Sebelum UTS (Rapor UTS) vs Sebelum UAS (Pasca-UTS)', () => {
+    const filterPraUTS = buildDateFilter('sem1_harian_pra_uts', mockSemester);
+    const filterPraUAS = buildDateFilter('sem1_harian_pra_uas', mockSemester);
+
+    // 1. Explicit subPeriode tag 'pra_uts'
+    expect(filterPraUTS('2026-08-15', 'Harian', 'pra_uts')).toBe(true);
+    expect(filterPraUAS('2026-08-15', 'Harian', 'pra_uts')).toBe(false);
+
+    // 2. Explicit subPeriode tag 'pra_uas'
+    expect(filterPraUTS('2026-11-10', 'Harian', 'pra_uas')).toBe(false);
+    expect(filterPraUAS('2026-11-10', 'Harian', 'pra_uas')).toBe(true);
+
+    // 3. Fallback when subPeriode is undefined (uses utsStart: 2026-09-15)
+    // 2026-08-15 is before UTS -> pra_uts
+    expect(filterPraUTS('2026-08-15', 'Harian')).toBe(true);
+    expect(filterPraUAS('2026-08-15', 'Harian')).toBe(false);
+
+    // 2026-11-10 is after UTS -> pra_uas
+    expect(filterPraUTS('2026-11-10', 'Harian')).toBe(false);
+    expect(filterPraUAS('2026-11-10', 'Harian')).toBe(true);
+
+    // 4. Exams are never included in daily sub-periods
+    expect(filterPraUTS('2026-08-15', 'UTS')).toBe(false);
+    expect(filterPraUAS('2026-11-10', 'UAS')).toBe(false);
+  });
+
   it('reads all records in sem1 filter', () => {
     const filterSem1 = buildDateFilter('sem1', mockSemester);
 

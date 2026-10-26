@@ -14,6 +14,7 @@ export interface Kelas {
 }
 
 export type PeriodeUjian = 'UTS' | 'UAS' | 'Harian';
+export type SubPeriodeReguler = 'pra_uts' | 'pra_uas';
 
 export interface AbsenRecord {
   id: string;
@@ -21,11 +22,12 @@ export interface AbsenRecord {
   studentName: string;
   date: string;
   status: 'H' | 'S' | 'I' | 'A';
-  keterangan?: string;          // ← BARU: keterangan tidak hadir
+  keterangan?: string;
   kelasId: string;
   periodeUjian?: PeriodeUjian;
+  subPeriode?: SubPeriodeReguler;
   mataPelajaran?: string;
-  jamUjian?: string;             // ← BARU: Jam/Sesi Ujian (opsional)
+  jamUjian?: string;
 }
 
 export type KasusStatus = 'baru' | 'proses' | 'selesai';
