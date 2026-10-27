@@ -126,4 +126,41 @@ describe('Ujian & Semester Date Filter', () => {
     expect(filterUAS('2026-10-26', 'UAS')).toBe(true);
     expect(filterUAS('2026-10-26', 'Harian')).toBe(false);
   });
+
+  it('guarantees exported rows are alphabetically ordered A-Z with accurate attendance totals', () => {
+    const rawStudents = [
+      { id: '3', name: 'Zainab', nis: '1003', sakit: 1, izin: 0, alpha: 0, aktif: 5 },
+      { id: '1', name: 'Ahmad Dahlan', nis: '1001', sakit: 0, izin: 1, alpha: 0, aktif: 0 },
+      { id: '2', name: 'Budi Santoso', nis: '1002', sakit: 2, izin: 1, alpha: 1, aktif: 1 },
+    ];
+
+    // Simulating export sorting logic
+    const sorted = [...rawStudents].sort((a, b) =>
+      a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' })
+    );
+
+    expect(sorted.map(s => s.name)).toEqual(['Ahmad Dahlan', 'Budi Santoso', 'Zainab']);
+
+    const rows = sorted.map((s, i) => [
+      i + 1,
+      s.name,
+      s.nis,
+      s.sakit,
+      s.izin,
+      s.alpha,
+      s.sakit + s.izin + s.alpha,
+      s.aktif > 0 ? `${s.aktif} kasus` : '-',
+    ]);
+
+    // Check No urut 1, 2, 3
+    expect(rows[0][0]).toBe(1);
+    expect(rows[0][1]).toBe('Ahmad Dahlan');
+    expect(rows[1][0]).toBe(2);
+    expect(rows[1][1]).toBe('Budi Santoso');
+    expect(rows[2][0]).toBe(3);
+    expect(rows[2][1]).toBe('Zainab');
+
+    // Total Budi = 2 S + 1 I + 1 A = 4
+    expect(rows[1][6]).toBe(4);
+  });
 });

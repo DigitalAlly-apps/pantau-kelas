@@ -117,8 +117,12 @@ export function RekapUjianPage() {
 
   const buildExportData = (separator: string) => {
     if (!kelas || mapelList.length === 0) return null;
-    const headers = ['No', 'Nama', 'NIS', ...mapelList, 'Total Tidak Hadir'];
-    const rows = kelas.students.map((s, i) => {
+    // Urutkan siswa A-Z alfabetis agar hasil ekspor rapi
+    const sorted = [...kelas.students].sort((a, b) =>
+      a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' })
+    );
+    const headers = ['No', 'Nama Siswa', 'NIS', ...mapelList, 'Total Tidak Hadir'];
+    const rows = sorted.map((s, i) => {
       const mapelCols = mapelList.map(m => {
         const records = absenPerMapel[m]?.[s.id];
         if (!records || records.length === 0) return 'Hadir';
@@ -127,14 +131,14 @@ export function RekapUjianPage() {
       const total = mapelList.reduce((acc, m) => acc + (absenPerMapel[m]?.[s.id]?.length || 0), 0);
       return [i + 1, s.name, s.nis || '', ...mapelCols, total];
     });
-    return { headers, rows };
+    return { headers, rows, count: sorted.length };
   };
 
   const handleExportCSV = () => {
     const data = buildExportData('; ');
     if (!data || !kelas) return;
     exportCSV(
-      `rekap_${periodeFilter}_${semSlug}_${kelas.name}_${semester.tahunAjaran.replace('/', '-')}.csv`,
+      `rekap_ujian_${periodeFilter}_${semSlug}_${kelas.name}_${semester.tahunAjaran.replace('/', '-')}.csv`,
       data.headers,
       data.rows
     );
@@ -143,11 +147,28 @@ export function RekapUjianPage() {
   const handleExportXLS = () => {
     const data = buildExportData(', ');
     if (!data || !kelas) return;
+    const todayStr = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
     exportXLS(
-      `rekap_${periodeFilter}_${semSlug}_${kelas.name}_${semester.tahunAjaran.replace('/', '-')}.xls`,
-      `Rekap ${periodeFilter} ${semLabel} · ${kelas.name}`,
+      `rekap_ujian_${periodeFilter}_${semSlug}_${kelas.name}_${semester.tahunAjaran.replace('/', '-')}.xls`,
+      `Ujian ${periodeFilter} · ${kelas.name}`,
       data.headers,
-      data.rows
+      data.rows,
+      {
+        title: `REKAPITULASI PRESENSI UJIAN ${periodeFilter}`,
+        metadata: {
+          'Kelas': kelas.name,
+          'Periode': `Ujian ${periodeFilter}`,
+          'Semester': semLabel,
+          'Tahun Ajaran': semester.tahunAjaran,
+          'Jumlah Siswa': `${data.count} siswa`,
+          'Tanggal Ekspor': todayStr,
+        },
+        columnWidths: [35, 200, 85, ...mapelList.map(() => 80), 95],
+      }
     );
   };
 

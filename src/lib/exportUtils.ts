@@ -272,29 +272,69 @@ function escapeXML(value: unknown): string {
 }
 
 /** Buat satu elemen <Cell> SpreadsheetML. */
-function xmlCell(value: unknown, isHeader = false): string {
+function xmlCell(value: unknown, styleId?: string): string {
   const isNumber = typeof value === 'number' && isFinite(value);
   const type = isNumber ? 'Number' : 'String';
   const content = isNumber ? String(value) : escapeXML(value);
-  const style = isHeader ? ' ss:StyleID="h"' : '';
+  const style = styleId ? ` ss:StyleID="${styleId}"` : '';
   return `<Cell${style}><Data ss:Type="${type}">${content}</Data></Cell>`;
+}
+
+export interface ExportXLSOptions {
+  title?: string;
+  metadata?: Record<string, string>;
+  columnWidths?: number[];
+  hasTotalRow?: boolean;
 }
 
 /**
  * Download file Excel menggunakan XML Spreadsheet 2003 (SpreadsheetML).
  * Format ini bisa dibuka di Excel 2003+, LibreOffice, dan Google Sheets
- * tanpa library tambahan.
+ * tanpa library tambahan, dengan styling rapi, lebar kolom, dan kop dokumen.
  */
 export function exportXLS(
   filename: string,
   sheetName: string,
   headers: string[],
-  rows: unknown[][]
+  rows: unknown[][],
+  options?: ExportXLSOptions
 ): void {
-  const headerRow = `<Row>${headers.map(h => xmlCell(h, true)).join('')}</Row>`;
+  const metaRows: string[] = [];
+
+  if (options?.title) {
+    metaRows.push(`<Row><Cell ss:StyleID="title"><Data ss:Type="String">${escapeXML(options.title)}</Data></Cell></Row>`);
+  }
+
+  if (options?.metadata) {
+    Object.entries(options.metadata).forEach(([k, v]) => {
+      metaRows.push(`<Row><Cell ss:StyleID="meta"><Data ss:Type="String">${escapeXML(k)}: ${escapeXML(v)}</Data></Cell></Row>`);
+    });
+    metaRows.push('<Row/>'); // Baris kosong pemisah kop & tabel
+  }
+
+  const headerRow = `<Row>${headers.map(h => xmlCell(h, 'h')).join('')}</Row>`;
+
   const dataRows = rows
-    .map(row => `<Row>${row.map(v => xmlCell(v)).join('')}</Row>`)
-    .join('');
+    .map((row, rIdx) => {
+      const isTotal = options?.hasTotalRow && rIdx === rows.length - 1;
+      const cells = row.map((v, cIdx) => {
+        let styleId = 'cellCenter';
+        if (isTotal) {
+          styleId = cIdx === 1 ? 'totalLeft' : 'total';
+        } else if (cIdx === 1) {
+          styleId = 'cellLeft';
+        }
+        return xmlCell(v, styleId);
+      }).join('');
+      return `<Row>${cells}</Row>`;
+    })
+    .join('\n');
+
+  const cols = options?.columnWidths
+    ? options.columnWidths.map(w => `<Column ss:Width="${w}"/>`).join('\n')
+    : '';
+
+  const cleanSheet = sheetName.replace(/[\\/?*[\]:]/g, ' ').substring(0, 31).trim() || 'Presensi';
 
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -305,14 +345,80 @@ export function exportXLS(
     ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"',
     ' xmlns:html="http://www.w3.org/TR/REC-html40">',
     '<Styles>',
+    '  <Style ss:ID="Default" ss:Name="Normal">',
+    '    <Alignment ss:Vertical="Center"/>',
+    '    <Borders/>',
+    '    <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#000000"/>',
+    '    <Interior/>',
+    '    <NumberFormat/>',
+    '    <Protection/>',
+    '  </Style>',
+    '  <Style ss:ID="title">',
+    '    <Font ss:FontName="Calibri" ss:Size="13" ss:Bold="1" ss:Color="#0F172A"/>',
+    '    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>',
+    '  </Style>',
+    '  <Style ss:ID="meta">',
+    '    <Font ss:FontName="Calibri" ss:Size="9" ss:Color="#475569"/>',
+    '    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>',
+    '  </Style>',
     '  <Style ss:ID="h">',
-    '    <Font ss:Bold="1"/>',
-    '    <Interior ss:Color="#D0D0D0" ss:Pattern="Solid"/>',
-    '    <Alignment ss:Horizontal="Center"/>',
+    '    <Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#FFFFFF"/>',
+    '    <Interior ss:Color="#1E293B" ss:Pattern="Solid"/>',
+    '    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>',
+    '    <Borders>',
+    '      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#94A3B8"/>',
+    '      <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#94A3B8"/>',
+    '      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#94A3B8"/>',
+    '      <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#94A3B8"/>',
+    '    </Borders>',
+    '  </Style>',
+    '  <Style ss:ID="cellLeft">',
+    '    <Font ss:FontName="Calibri" ss:Size="10"/>',
+    '    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>',
+    '    <Borders>',
+    '      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '      <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '      <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '    </Borders>',
+    '  </Style>',
+    '  <Style ss:ID="cellCenter">',
+    '    <Font ss:FontName="Calibri" ss:Size="10"/>',
+    '    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>',
+    '    <Borders>',
+    '      <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '      <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '      <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '    </Borders>',
+    '  </Style>',
+    '  <Style ss:ID="totalLeft">',
+    '    <Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#0F172A"/>',
+    '    <Interior ss:Color="#F1F5F9" ss:Pattern="Solid"/>',
+    '    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>',
+    '    <Borders>',
+    '      <Border ss:Position="Bottom" ss:LineStyle="Double" ss:Weight="3" ss:Color="#64748B"/>',
+    '      <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#64748B"/>',
+    '      <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '    </Borders>',
+    '  </Style>',
+    '  <Style ss:ID="total">',
+    '    <Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#0F172A"/>',
+    '    <Interior ss:Color="#F1F5F9" ss:Pattern="Solid"/>',
+    '    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>',
+    '    <Borders>',
+    '      <Border ss:Position="Bottom" ss:LineStyle="Double" ss:Weight="3" ss:Color="#64748B"/>',
+    '      <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#64748B"/>',
+    '      <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '      <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>',
+    '    </Borders>',
     '  </Style>',
     '</Styles>',
-    `<Worksheet ss:Name="${escapeXML(sheetName)}">`,
+    `<Worksheet ss:Name="${escapeXML(cleanSheet)}">`,
     '<Table>',
+    cols,
+    metaRows.join('\n'),
     headerRow,
     dataRows,
     '</Table>',

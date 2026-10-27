@@ -73,12 +73,83 @@ export function LaporanPage() {
   const totalA = students.reduce((n, s) => n + s.alpha, 0);
 
   const exportFile = (kind: 'csv' | 'xls') => {
-    const headers = ['No', 'Nama', 'NIS', 'Sakit', 'Izin', 'Alpha', 'Kasus Aktif'];
-    const rows    = students.map((s, i) => [i + 1, s.name, s.nis || '', s.sakit, s.izin, s.alpha, s.aktif]);
-    const suffix  = activePeriod.replace(/_/g, '-');
-    const base    = `buku_induk_${kelas?.name || 'kelas'}_${suffix}_${semester.tahunAjaran.replace('/', '-')}`;
-    if (kind === 'csv') exportCSV(base + '.csv', headers, rows);
-    else exportXLS(base + '.xls', `Buku Induk ${kelas?.name || 'Kelas'} · ${periodLabel}`, headers, rows);
+    // 1. Urutkan siswa secara alfabetis A-Z untuk dokumen resmi raport
+    const sorted = [...students].sort((a, b) =>
+      a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' })
+    );
+
+    // 2. Susun baris data dengan No urut 1..N
+    const rows = sorted.map((s, i) => [
+      i + 1,
+      s.name,
+      s.nis || '',
+      s.sakit,
+      s.izin,
+      s.alpha,
+      s.sakit + s.izin + s.alpha,
+      s.aktif > 0 ? `${s.aktif} kasus` : '-',
+    ]);
+
+    // 3. Tambahkan baris total kelas di bagian bawah
+    const totalTidakHadir = totalS + totalI + totalA;
+    const totalKasus = sorted.reduce((sum, s) => sum + s.aktif, 0);
+
+    const summaryRow = [
+      '',
+      'TOTAL KELAS',
+      '',
+      totalS,
+      totalI,
+      totalA,
+      totalTidakHadir,
+      totalKasus > 0 ? `${totalKasus} kasus` : '-',
+    ];
+
+    const allRows = [...rows, summaryRow];
+    const headers = [
+      'No',
+      'Nama Siswa',
+      'NIS',
+      'Sakit (S)',
+      'Izin (I)',
+      'Alpha (A)',
+      'Total Tidak Hadir',
+      'Kasus Aktif',
+    ];
+
+    const suffix = activePeriod.replace(/_/g, '-');
+    const base = `rekap_presensi_${kelas?.name || 'kelas'}_${suffix}_${semester.tahunAjaran.replace('/', '-')}`;
+    const todayStr = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    const metadata: Record<string, string> = {
+      'Kelas': kelas?.name || '-',
+      'Semester': semester.semester === 'ganjil' ? 'Semester 1 (Ganjil)' : 'Semester 2 (Genap)',
+      'Periode Rekap': periodLabel,
+      'Tahun Ajaran': semester.tahunAjaran,
+      'Jumlah Siswa': `${sorted.length} siswa`,
+      'Tanggal Ekspor': todayStr,
+    };
+
+    if (kind === 'csv') {
+      exportCSV(base + '.csv', headers, allRows);
+    } else {
+      exportXLS(
+        base + '.xls',
+        `Rekap ${kelas?.name || 'Kelas'}`,
+        headers,
+        allRows,
+        {
+          title: 'REKAPITULASI PRESENSI SISWA',
+          metadata,
+          columnWidths: [35, 220, 85, 65, 65, 65, 95, 90],
+          hasTotalRow: true,
+        }
+      );
+    }
   };
 
   if (!kelas) return <p className="py-16 text-center text-sm text-text-tertiary">Pilih kelas terlebih dahulu.</p>;
@@ -332,7 +403,7 @@ export function LaporanPage() {
             </div>
 
             <p className="mt-3 text-xs text-text-secondary">
-              Data yang diekspor sesuai filter aktif di halaman.
+              Hasil ekspor otomatis diurutkan rapi berdasarkan abjad nama siswa (A–Z) sesuai filter aktif.
             </p>
 
             <div className="mt-4 flex gap-2">
