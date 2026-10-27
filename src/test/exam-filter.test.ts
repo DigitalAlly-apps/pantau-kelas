@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildDateFilter, isDateInSemester, getSemesterFromDate } from '@/lib/exportUtils';
+import { buildDateFilter, isDateInSemester, getSemesterFromDate, EXPORT_PERIOD_LABELS } from '@/lib/exportUtils';
 import type { SemesterConfig } from '@/types';
 
 describe('Ujian & Semester Date Filter', () => {
@@ -70,7 +70,7 @@ describe('Ujian & Semester Date Filter', () => {
     expect(filterSem1Harian('2026-10-26', 'UTS')).toBe(false);
   });
 
-  it('correctly filters Harian Sebelum UTS (Rapor UTS) vs Sebelum UAS (Pasca-UTS)', () => {
+  it('correctly filters Harian Sebelum UTS (Rapor UTS) vs Setelah UTS (Rapor UAS)', () => {
     const filterPraUTS = buildDateFilter('sem1_harian_pra_uts', mockSemester);
     const filterPraUAS = buildDateFilter('sem1_harian_pra_uas', mockSemester);
 
@@ -94,6 +94,12 @@ describe('Ujian & Semester Date Filter', () => {
     // 4. Exams are never included in daily sub-periods
     expect(filterPraUTS('2026-08-15', 'UTS')).toBe(false);
     expect(filterPraUAS('2026-11-10', 'UAS')).toBe(false);
+
+    // 5. Verify EXPORT_PERIOD_LABELS has clean wording without misleading "UAS" on full semester
+    expect(EXPORT_PERIOD_LABELS.sem1_harian).toBe('Sem 1 · 1 Semester Penuh');
+    expect(EXPORT_PERIOD_LABELS.sem1_harian_pra_uts).toBe('Sem 1 · Rapor UTS (Sebelum UTS)');
+    expect(EXPORT_PERIOD_LABELS.sem1_harian_pra_uas).toBe('Sem 1 · Rapor UAS (Setelah UTS)');
+    expect(EXPORT_PERIOD_LABELS.sem1_harian).not.toContain('UAS');
   });
 
   it('reads all records in sem1 filter', () => {

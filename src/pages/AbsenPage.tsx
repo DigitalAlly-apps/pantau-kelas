@@ -388,8 +388,8 @@ export function AbsenPage() {
           <div className="flex flex-col gap-2">
             <div className="flex bg-bg-2 rounded-xl p-1 gap-1">
               {([
-                ['pra_uts', 'Reguler UTS (Rapor UTS)', 'Reguler UTS'],
-                ['pra_uas', 'Reguler UAS (Rapor UAS)', 'Reguler UAS'],
+                ['pra_uts', 'Sebelum UTS (Rapor UTS)', 'Sebelum UTS'],
+                ['pra_uas', 'Setelah UTS (Rapor UAS)', 'Setelah UTS'],
               ] as const).map(([subId, fullLabel, mobileLabel]) => (
                 <button
                   key={subId}
@@ -412,17 +412,17 @@ export function AbsenPage() {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-foreground">
-                    Mode: Absensi Reguler Kelas — {regulerSubPeriode === 'pra_uts' ? 'Periode UTS (Rapor UTS)' : 'Periode UAS (Rapor UAS)'}
+                    Mode: Absensi Reguler Kelas — {regulerSubPeriode === 'pra_uts' ? 'Sebelum UTS (Rapor UTS)' : 'Setelah UTS (Rapor UAS)'}
                   </p>
                   <p className="text-[11px] text-text-tertiary">
                     {regulerSubPeriode === 'pra_uts'
-                      ? 'Kehadiran harian dicatat untuk nilai Rapor UTS & Rapor Akhir Semester (1 Sem Penuh)'
-                      : 'Kehadiran harian dicatat untuk nilai Rapor Akhir Semester (UAS)'}
+                      ? 'Kehadiran harian dicatat untuk nilai Rapor UTS & akumulasi 1 Semester Penuh'
+                      : 'Kehadiran harian dicatat untuk nilai Rapor UAS & akumulasi 1 Semester Penuh'}
                   </p>
                 </div>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 flex-shrink-0">
-                {regulerSubPeriode === 'pra_uts' ? 'Pra-UTS' : 'Pra-UAS'}
+                {regulerSubPeriode === 'pra_uts' ? 'Pra-UTS' : 'Pasca-UTS'}
               </span>
             </div>
           </div>

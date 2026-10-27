@@ -201,9 +201,9 @@ export function LaporanPage() {
       {showSubFilter && (
         <div className="flex gap-2 overflow-x-auto pb-1 touch-pan-x scrollbar-none">
           {([
-            ['harian_pra_uts', 'Rapor UTS (Pra-UTS)'],
-            ['harian',         'Rapor UAS (1 Sem Penuh)'],
-            ['harian_pra_uas', 'Pasca-UTS (s.d. UAS)'],
+            ['harian_pra_uts', 'Rapor UTS (Sebelum UTS)'],
+            ['harian_pra_uas', 'Rapor UAS (Setelah UTS)'],
+            ['harian',         '1 Semester Penuh'],
             ['semua',          'Semua Data'],
             ['UTS',            'Ujian UTS'],
             ['UAS',            'Ujian UAS'],
@@ -224,15 +224,25 @@ export function LaporanPage() {
       )}
 
       {/* Info status aktif & jumlah data */}
-      <div className="flex items-center justify-between rounded-xl bg-bg-2 px-3.5 py-2 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-primary" />
-          <span className="font-bold text-foreground">{periodLabel}</span>
-          <span className="text-[11px] text-text-tertiary">• TA {semester.tahunAjaran}</span>
+      <div className="flex flex-col gap-1 rounded-xl bg-bg-2 px-3.5 py-2.5 text-xs">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-primary" />
+            <span className="font-bold text-foreground">{periodLabel}</span>
+            <span className="text-[11px] text-text-tertiary">• TA {semester.tahunAjaran}</span>
+          </div>
+          <span className="text-[11px] text-text-secondary font-medium">
+            {students.filter(s => s.total > 0 || s.aktif > 0).length} siswa dengan catatan
+          </span>
         </div>
-        <span className="text-[11px] text-text-secondary font-medium">
-          {students.filter(s => s.total > 0 || s.aktif > 0).length} siswa dengan catatan
-        </span>
+        <p className="text-[11px] text-text-tertiary">
+          {periodeRow === 'harian_pra_uts' && 'Menampilkan kehadiran harian reguler sebelum UTS untuk nilai Rapor UTS.'}
+          {periodeRow === 'harian_pra_uas' && 'Menampilkan kehadiran harian reguler setelah UTS untuk nilai Rapor UAS.'}
+          {periodeRow === 'harian' && 'Menampilkan akumulasi seluruh kehadiran harian selama 1 semester penuh (sebelum & setelah UTS).'}
+          {periodeRow === 'semua' && 'Menampilkan semua data kehadiran pada semester ini, termasuk sesi ujian.'}
+          {periodeRow === 'UTS' && 'Menampilkan catatan presensi sesi ujian UTS per mata pelajaran.'}
+          {periodeRow === 'UAS' && 'Menampilkan catatan presensi sesi ujian UAS per mata pelajaran.'}
+        </p>
       </div>
 
       {/* Hint: jadwal UTS/UAS belum dikonfigurasi */}
