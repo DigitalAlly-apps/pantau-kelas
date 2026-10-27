@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Download, FileSpreadsheet, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, FileSpreadsheet, GraduationCap, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import type { PeriodeUjian } from '@/types';
 import { exportCSV, exportXLS, isDateInSemester } from '@/lib/exportUtils';
 
@@ -299,7 +299,10 @@ export function RekapUjianPage() {
                 {isExpanded && (
                   <div className="divide-y divide-border">
                     {jumlahTidakHadir === 0 ? (
-                      <p className="px-4 py-4 text-sm text-text-tertiary text-center">Semua siswa hadir ✓</p>
+                      <div className="px-4 py-4 flex items-center justify-center gap-1.5 text-sm text-text-tertiary">
+                        <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span>Semua siswa hadir</span>
+                      </div>
                     ) : (
                       Object.entries(absenMapel).map(([studentId, records]) => {
                         const siswa = kelas.students.find(s => s.id === studentId);
@@ -336,9 +339,9 @@ export function RekapUjianPage() {
           <div className="bg-surface rounded-2xl shadow-soft overflow-hidden">
             <div className="px-4 py-3 border-b border-border">
               <p className="text-sm font-semibold text-foreground">Tabel Rekap Lengkap</p>
-              <p className="text-[11px] text-text-tertiary mt-0.5">✓ = hadir · S/I/A = tidak hadir</p>
+              <p className="text-[11px] text-text-tertiary mt-0.5">Centang = hadir · S/I/A = tidak hadir</p>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto touch-pan-x">
               <table className="w-full border-collapse text-[12px]">
                 <thead>
                   <tr className="bg-bg-2">
@@ -362,7 +365,7 @@ export function RekapUjianPage() {
                           if (!records || records.length === 0) {
                             return (
                               <td key={m} className="px-3 py-2.5 border-b border-border text-center text-green-600 dark:text-green-400 font-bold">
-                                ✓
+                                <Check className="w-3.5 h-3.5 mx-auto text-emerald-600 dark:text-emerald-400" />
                               </td>
                             );
                           }

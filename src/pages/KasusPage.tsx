@@ -27,13 +27,6 @@ const TEMPLATE_KASUS = [
   'Meninggalkan kelas tanpa izin (membolos)',
 ];
 
-const TIPE_CATATAN = [
-  { id: 'prestasi',     label: '🏆 Prestasi',     desc: 'Pencapaian atau penghargaan' },
-  { id: 'perkembangan', label: '📈 Perkembangan',  desc: 'Kemajuan belajar atau sikap' },
-  { id: 'sholat',       label: '🕌 Sholat & Ibadah', desc: 'Pelaksanaan sholat/ibadah' },
-  { id: 'umum',         label: '📝 Umum',          desc: 'Catatan observasi lainnya' },
-] as const;
-
 export function KasusPage() {
   const { kelasList, activeKelas, addKasusRecord, addCatatanRecord, showToast } = useApp();
   const kelas = kelasList.find(k => k.id === activeKelas);
@@ -156,7 +149,7 @@ export function KasusPage() {
             <label className="label-upper block mb-1.5">Status Kasus</label>
             <select value={status} onChange={e => setStatus(e.target.value as KasusStatus)} className="input-soft w-full">
               {STATUS_OPTIONS.map(s => (
-                <option key={s} value={s}>{s === 'baru' ? '🔴 Baru' : s === 'proses' ? '🟡 Proses' : '🟢 Selesai'}</option>
+                <option key={s} value={s}>{s === 'baru' ? 'Baru' : s === 'proses' ? 'Proses' : 'Selesai'}</option>
               ))}
             </select>
           </div>

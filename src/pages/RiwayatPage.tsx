@@ -231,8 +231,8 @@ export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Prop
                           </p>
                         </div>
                         <span className={`text-xs font-bold px-2 py-1 rounded-lg flex-shrink-0 ${STATUS_COLOR[r.status]}`}>{STATUS_LABEL[r.status]}</span>
-                        <button onClick={() => startEdit(r.id, 'absen')} className="p-1.5 hover:bg-bg-2 rounded-lg text-text-secondary hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setConfirmDelete({ id: r.id, type: 'absen' })} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-text-secondary hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => startEdit(r.id, 'absen')} aria-label="Edit absensi" className="w-9 h-9 flex items-center justify-center hover:bg-bg-2 rounded-lg text-text-secondary hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setConfirmDelete({ id: r.id, type: 'absen' })} aria-label="Hapus absensi" className="w-9 h-9 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-text-secondary hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     )}
                   </div>
@@ -298,7 +298,12 @@ export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Prop
                                   ? 'bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400'
                                   : 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400'
                               }`}>
-                              {!r.status || r.status === 'baru' ? '🔴 Baru' : r.status === 'proses' ? '🟡 Proses' : '🟢 Selesai'}
+                              <span className="inline-flex items-center gap-1.5">
+                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                  !r.status || r.status === 'baru' ? 'bg-red-500' : r.status === 'proses' ? 'bg-amber-500' : 'bg-emerald-500'
+                                }`} />
+                                {!r.status || r.status === 'baru' ? 'Baru' : r.status === 'proses' ? 'Proses' : 'Selesai'}
+                              </span>
                             </button>
                           </div>
                           <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">{r.description}</p>
@@ -306,8 +311,8 @@ export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Prop
                           <p className="text-xs text-text-tertiary mt-0.5">{r.date}</p>
                         </div>
                         <div className="flex flex-shrink-0">
-                          <button onClick={() => startEdit(r.id, 'kasus')} className="p-1.5 hover:bg-bg-2 rounded-lg text-text-secondary hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => setConfirmDelete({ id: r.id, type: 'kasus' })} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-text-secondary hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => startEdit(r.id, 'kasus')} aria-label="Edit kasus" className="w-9 h-9 flex items-center justify-center hover:bg-bg-2 rounded-lg text-text-secondary hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setConfirmDelete({ id: r.id, type: 'kasus' })} aria-label="Hapus kasus" className="w-9 h-9 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-text-secondary hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </div>
                     )}

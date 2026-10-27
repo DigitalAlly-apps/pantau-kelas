@@ -8,7 +8,7 @@ import { RiwayatPage } from './RiwayatPage';
 
 const KATEGORI = ['Kedisiplinan', 'Sholat / Ibadah', 'Perilaku & Etika', 'Tugas & Peralatan', 'Pelanggaran Berat', 'Lainnya'];
 const TEMPLATE = ['Tidak mengerjakan PR / Tugas', 'Terlambat masuk kelas / sekolah', 'Tidak melaksanakan sholat berjamaah', 'Mengganggu teman saat pelajaran', 'Tidak membawa buku / perlengkapan belajar'];
-const TIPE = [['umum', '📝 Umum'], ['sholat', '🕌 Ibadah'], ['prestasi', '🏆 Prestasi'], ['perkembangan', '📈 Perkembangan']] as const;
+const TIPE = [['umum', 'Umum'], ['sholat', 'Ibadah'], ['prestasi', 'Prestasi'], ['perkembangan', 'Perkembangan']] as const;
 type Tab = 'hari-ini' | 'tindak-lanjut' | 'riwayat';
 type Form = 'kasus' | 'catatan' | null;
 
@@ -38,7 +38,7 @@ export function JurnalPage() {
   }, [kelas?.students, deferredStudentQuery]);
   const todayItems = useMemo(() => [
     ...kasusRecords.filter(item => item.kelasId === activeKelas && item.date === today).map(item => ({ id: `k-${item.id}`, type: 'kasus', title: item.studentName, subtitle: item.category, content: item.description, status: item.status })),
-    ...catatanRecords.filter(item => item.kelasId === activeKelas && item.date === today).map(item => ({ id: `c-${item.id}`, type: 'catatan', title: item.studentName, subtitle: TIPE.find(t => t[0] === item.tipe)?.[1] || '📝 Umum', content: item.content })),
+    ...catatanRecords.filter(item => item.kelasId === activeKelas && item.date === today).map(item => ({ id: `c-${item.id}`, type: 'catatan', title: item.studentName, subtitle: TIPE.find(t => t[0] === item.tipe)?.[1] || 'Umum', content: item.content })),
   ].reverse(), [kasusRecords, catatanRecords, activeKelas, today]);
   const activeCases = kasusRecords.filter(item => item.kelasId === activeKelas && item.status !== 'selesai');
   const save = () => {

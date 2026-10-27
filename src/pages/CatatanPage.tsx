@@ -4,10 +4,10 @@ import { Search, BookOpen, Plus, X, Pencil, Trash2, Check } from 'lucide-react';
 import type { CatatanRecord } from '@/types';
 
 const TIPE_CATATAN = [
-  { id: 'umum',         label: '📝 Umum',          desc: 'Catatan observasi lainnya' },
-  { id: 'sholat',       label: '🕌 Sholat & Ibadah', desc: 'Catatan kedisiplinan & pelaksanaan sholat/ibadah' },
-  { id: 'prestasi',     label: '🏆 Prestasi',       desc: 'Pencapaian atau penghargaan' },
-  { id: 'perkembangan', label: '📈 Perkembangan',   desc: 'Kemajuan belajar atau sikap' },
+  { id: 'umum',         label: 'Umum',          desc: 'Catatan observasi lainnya' },
+  { id: 'sholat',       label: 'Sholat & Ibadah', desc: 'Catatan kedisiplinan & pelaksanaan sholat/ibadah' },
+  { id: 'prestasi',     label: 'Prestasi',       desc: 'Pencapaian atau penghargaan' },
+  { id: 'perkembangan', label: 'Perkembangan',   desc: 'Kemajuan belajar atau sikap' },
 ] as const;
 
 type TipeCatatan = typeof TIPE_CATATAN[number]['id'];

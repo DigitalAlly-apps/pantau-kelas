@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { Moon, Calendar, Download, Upload, Smartphone, User, Trash2, ChevronDown, ChevronUp, Cloud } from 'lucide-react';
+import { Moon, Calendar, Download, Upload, Smartphone, User, Trash2, ChevronDown, ChevronUp, Cloud, AlertTriangle } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useDarkMode } from '@/hooks/use-dark-mode';
 import { useSupabase } from '@/context/SupabaseContext';
@@ -128,11 +128,11 @@ export function SetelanPage() {
 
         <button
           onClick={() => setActiveTab('auth')}
-          className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all shadow-md shadow-indigo-500/10 active:scale-[0.99]"
+          className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all shadow-md shadow-indigo-500/10 active:scale-[0.99] min-h-[44px] flex items-center justify-center"
         >
-          {!isConfigured ? 'Buka Panduan Setup Supabase 🛠️' :
-           !user ? 'Hubungkan Akun Cloud Sekarang 🔑' :
-           'Kelola Akun & Sinkronisasi Cloud ☁️'}
+          {!isConfigured ? 'Buka Panduan Setup Supabase' :
+           !user ? 'Hubungkan Akun Cloud Sekarang' :
+           'Kelola Akun & Sinkronisasi Cloud'}
         </button>
       </div>
 
@@ -299,12 +299,13 @@ export function SetelanPage() {
             <p className="text-[12px] text-text-tertiary">Hapus seluruh data jurnal secara permanen</p>
           </div>
         </div>
-        <p className="text-[12px] text-red-500/80 dark:text-red-400/80 mb-3 mt-2 leading-relaxed">
-          ⚠️ Tindakan ini tidak dapat dibatalkan. Pastikan sudah backup sebelum melanjutkan.
+        <p className="text-[12px] text-red-500/80 dark:text-red-400/80 mb-3 mt-2 leading-relaxed flex items-center gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>Tindakan ini tidak dapat dibatalkan. Pastikan sudah backup sebelum melanjutkan.</span>
         </p>
         <button
           onClick={() => { setResetInput(''); setShowResetDialog(true); }}
-          className="w-full py-2.5 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+          className="w-full py-2.5 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors min-h-[44px] flex items-center justify-center"
         >
           Reset Data...
         </button>

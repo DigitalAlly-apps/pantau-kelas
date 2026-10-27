@@ -426,7 +426,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // ── Fix 3: Zod-lite validation, reject corrupt/random JSON ────────────────
   const importBackup = useCallback((data: BackupData) => {
     if (!validateBackup(data)) {
-      showToast('❌ Format backup tidak valid atau file corrupt');
+      showToast('Format backup tidak valid atau file corrupt');
       return;
     }
     if (data.namaGuru) setNamaGuru(data.namaGuru);
@@ -438,7 +438,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (data.confirmedDates) setConfirmedDates(data.confirmedDates);
     if (data.semester) setSemester(data.semester);
     if (data.kelasList.length > 0) setActiveKelas(data.kelasList[0].id);
-    showToast('✅ Data berhasil dipulihkan dari backup');
+    showToast('Data berhasil dipulihkan dari backup');
   }, [showToast]);
 
   // ── Auto-backup: snapshot ke IDB setiap ada perubahan, auto-download kalau >3 hari ──
@@ -452,7 +452,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     lastBackupDate,
     onAutoBackupDone: (date) => {
       setLastBackupDate(date);
-      showToast('💾 Auto-backup berhasil diunduh');
+      showToast('Auto-backup berhasil diunduh');
     },
   });
 
@@ -549,19 +549,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             setCatatanRecords(synced.catatanRecords || []);
             setLiburDates(synced.liburDates || []);
             setConfirmedDates(synced.confirmedDates || []);
-            showToast('☁️ Cloud Sync: Data berhasil dipulihkan dari Cloud!');
+            showToast('Cloud Sync: Data berhasil dipulihkan dari Cloud!');
           } else if (localHasData) {
             // Cloud kosong tapi lokal ada data → biarkan data lokal, auto-sync akan mengunggahnya
             lastSyncedDataRef.current = ''; // force auto-sync untuk upload data lokal
-            showToast('☁️ Cloud Sync: Terhubung! Data lokal akan diunggah...');
+            showToast('Cloud Sync: Terhubung! Data lokal akan diunggah...');
           } else {
             // Keduanya kosong → tidak ada yang perlu dilakukan
-            showToast('☁️ Cloud Sync: Terhubung!');
+            showToast('Cloud Sync: Terhubung!');
           }
         } else {
           // Tampilkan error spesifik dari Supabase
           const errMsg = sessionStorage.getItem('jg_lastSyncError');
-          showToast(`❌ Gagal sinkronisasi: ${errMsg || 'Cek koneksi internet'}`);
+          showToast(`Gagal sinkronisasi: ${errMsg || 'Cek koneksi internet'}`);
         }
         setInitialSyncReady(true);
       };
@@ -622,7 +622,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const syncWithCloud = useCallback(async () => {
     if (!user) {
-      showToast('⚠️ Silakan masuk ke akun Cloud terlebih dahulu');
+      showToast('Silakan masuk ke akun Cloud terlebih dahulu');
       return false;
     }
     const localState: BackupData = {
@@ -658,10 +658,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setCatatanRecords(synced.catatanRecords || []);
       setLiburDates(synced.liburDates || []);
       setConfirmedDates(synced.confirmedDates || []);
-      showToast('☁️ Sukses menyinkronkan data dengan Cloud!');
+      showToast('Sukses menyinkronkan data dengan Cloud!');
       return true;
     } else {
-      showToast('❌ Gagal sinkronisasi data dengan Cloud');
+      showToast('Gagal sinkronisasi data dengan Cloud');
       return false;
     }
   }, [user, namaGuru, semester, kelasList, absenRecords, kasusRecords, catatanRecords, liburDates, confirmedDates, syncData, showToast, getSerializedState]);

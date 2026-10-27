@@ -24,7 +24,7 @@ export default function AuthPage() {
     setLoading(true);
     const { error } = await signInWithGoogle();
     if (error) {
-      showToast(`❌ Gagal masuk: ${error.message}`);
+      showToast(`Gagal masuk: ${error.message}`);
       setLoading(false);
     }
     // Jika berhasil, browser akan redirect ke Google — loading tetap true
@@ -101,7 +101,7 @@ export default function AuthPage() {
 
             {lastSyncError && (
               <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-700 dark:text-rose-300 space-y-1">
-                <span className="font-semibold block">⚠️ Detail Error Supabase:</span>
+                <span className="font-semibold block">Detail Error Supabase:</span>
                 <span className="font-mono break-all block">{lastSyncError}</span>
               </div>
             )}

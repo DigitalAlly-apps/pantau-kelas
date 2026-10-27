@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Search, CheckCircle, Pencil, ChevronDown, CalendarX, X, CalendarDays, BookOpen, AlertCircle, GraduationCap } from 'lucide-react';
+import { Search, CheckCircle, Pencil, ChevronDown, CalendarX, X, CalendarDays, BookOpen, AlertCircle, GraduationCap, Check, Info } from 'lucide-react';
 import type { AbsenRecord, PeriodeUjian } from '@/types';
 import { AbsensiKalender } from '@/components/AbsensiKalender';
 import { getSemesterFromDate } from '@/lib/exportUtils';
@@ -320,7 +320,11 @@ export function AbsenPage() {
     <div className="flex flex-col gap-4 w-full max-w-4xl mx-auto overflow-hidden">
 
       <div className="flex rounded-xl bg-bg-2 p-1 gap-1">
-        {([['harian', 'Absensi Reguler Kelas'], ['ujian', 'Presensi Sesi Ujian (Opsional)'], ['kalender', 'Kalender']] as const).map(([id, label]) => (
+        {([
+          ['harian', 'Absensi Reguler Kelas', 'Reguler'],
+          ['ujian', 'Presensi Sesi Ujian (Opsional)', 'Ujian'],
+          ['kalender', 'Kalender', 'Kalender'],
+        ] as const).map(([id, label, mobileLabel]) => (
           <button
             key={id}
             type="button"
@@ -334,11 +338,12 @@ export function AbsenPage() {
                 }
               }
             }}
-            className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all ${
+            className={`flex-1 rounded-lg py-2.5 px-1 text-xs font-bold transition-all min-h-[44px] flex items-center justify-center text-center ${
               attendanceTab === id ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary hover:text-text-secondary'
             }`}
           >
-            {label}
+            <span className="sm:hidden">{mobileLabel}</span>
+            <span className="hidden sm:inline">{label}</span>
           </button>
         ))}
       </div>
@@ -369,7 +374,7 @@ export function AbsenPage() {
           <button
             onClick={() => { setAttendanceTab('kalender'); setShowKalender(v => !v); }}
             title="Lihat kalender absensi"
-            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold transition-all ${
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold transition-all min-h-[44px] ${
               showKalender ? 'bg-primary text-white' : 'bg-bg-2 text-text-secondary hover:text-primary hover:bg-accent-light'
             }`}
           >
@@ -383,27 +388,28 @@ export function AbsenPage() {
           <div className="flex flex-col gap-2">
             <div className="flex bg-bg-2 rounded-xl p-1 gap-1">
               {([
-                ['pra_uts', '🎯 Reguler UTS (Rapor UTS)'],
-                ['pra_uas', '🏆 Reguler UAS (Rapor UAS)'],
-              ] as const).map(([subId, subLabel]) => (
+                ['pra_uts', 'Reguler UTS (Rapor UTS)', 'Reguler UTS'],
+                ['pra_uas', 'Reguler UAS (Rapor UAS)', 'Reguler UAS'],
+              ] as const).map(([subId, fullLabel, mobileLabel]) => (
                 <button
                   key={subId}
                   type="button"
                   onClick={() => handleSubPeriodeChange(subId)}
-                  className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-all ${
+                  className={`flex-1 py-2 px-2 text-[11px] sm:text-xs font-bold rounded-lg transition-all min-h-[44px] flex items-center justify-center text-center ${
                     regulerSubPeriode === subId
                       ? 'bg-surface shadow-soft text-foreground'
                       : 'text-text-tertiary hover:text-text-secondary'
                   }`}
                 >
-                  {subLabel}
+                  <span className="sm:hidden">{mobileLabel}</span>
+                  <span className="hidden sm:inline">{fullLabel}</span>
                 </button>
               ))}
             </div>
 
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 flex items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-foreground">
                     Mode: Absensi Reguler Kelas — {regulerSubPeriode === 'pra_uts' ? 'Periode UTS (Rapor UTS)' : 'Periode UAS (Rapor UAS)'}
@@ -431,7 +437,7 @@ export function AbsenPage() {
                   key={p}
                   type="button"
                   onClick={() => handlePeriodeChange(p)}
-                  className={`flex-1 py-2 text-[12px] font-bold rounded-lg transition-all ${
+                  className={`flex-1 py-2 text-[12px] font-bold rounded-lg transition-all min-h-[44px] flex items-center justify-center ${
                     periode === p ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary hover:text-text-secondary'
                   }`}
                 >
@@ -455,21 +461,22 @@ export function AbsenPage() {
                 Kehadiran per mapel • Masuk ke filter <b>{periode}</b> &amp; <b>Semua</b> di Laporan &amp; Rekap Ujian
               </p>
               {examSchedule?.start && examSchedule?.end ? (
-                <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[11px]">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pt-1 border-t border-border/40 text-[11px]">
                   <span className="text-text-secondary">Jadwal resmi di Setelan: <b>{examSchedule.start} s/d {examSchedule.end}</b></span>
                   {date !== examSchedule.start && (
                     <button
                       type="button"
                       onClick={() => handleDateChange(examSchedule.start)}
-                      className="text-primary hover:underline font-bold text-[11px]"
+                      className="text-primary hover:underline font-bold text-[11px] text-left"
                     >
                       Gunakan Tanggal Jadwal
                     </button>
                   )}
                 </div>
               ) : (
-                <p className="text-[10px] text-text-tertiary pt-0.5 border-t border-border/30">
-                  ℹ️ Jadwal tanggal resmi {periode} belum diset di Setelan (data tetap aman tercatat sebagai {periode}).
+                <p className="text-[10px] text-text-tertiary pt-1 border-t border-border/30 flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>Jadwal tanggal resmi {periode} belum diset di Setelan (data tetap aman tercatat sebagai {periode}).</span>
                 </p>
               )}
             </div>
@@ -641,7 +648,7 @@ export function AbsenPage() {
                 : 'Tersimpan: Absensi Reguler (Harian)'}
               {' — '}
               {existingForDate.length === 0 && isConfirmed
-                ? 'Semua hadir ✓'
+                ? 'Semua hadir'
                 : `${existingForDate.filter(a => a.status !== 'H').length} siswa tidak hadir`}
             </p>
             <p className="text-[11px] text-semantic-blue/70 mt-0.5">
@@ -664,8 +671,8 @@ export function AbsenPage() {
             className="input-soft pl-10 w-full" />
         </div>
         <button onClick={markAllHadir}
-          className="flex items-center gap-1.5 px-3 py-2 bg-accent-light text-primary rounded-xl text-xs font-semibold hover:bg-primary hover:text-white transition-all flex-shrink-0">
-          <CheckCircle className="w-3.5 h-3.5" /> Hadir Semua
+          className="flex items-center gap-1.5 px-3.5 py-2 bg-accent-light text-primary rounded-xl text-xs font-semibold hover:bg-primary hover:text-white transition-all flex-shrink-0 min-h-[44px]">
+          <CheckCircle className="w-4 h-4" /> Hadir Semua
         </button>
       </div>
 
@@ -693,18 +700,32 @@ export function AbsenPage() {
                   )}
                 </div>
 
-                {status === 'H' ? <button onClick={() => { toggleStatus(s.id, 'A'); setExpandedId(s.id); }} className="rounded-xl border border-border bg-bg-2 px-3 py-2 text-[11px] font-bold text-text-secondary">Tandai tidak hadir</button> : <button onClick={() => setExpandedId(isOpen ? null : s.id)} className={`rounded-xl px-3 py-2 text-[11px] font-bold ${statusColors[status]}`}>{statusLabel[status]}</button>}
+                {status === 'H' ? (
+                  <button
+                    onClick={() => { toggleStatus(s.id, 'A'); setExpandedId(s.id); }}
+                    className="rounded-xl border border-border bg-bg-2 px-3 py-2 text-[11px] sm:text-xs font-bold text-text-secondary min-h-[44px] flex items-center justify-center active:scale-95"
+                  >
+                    Tandai tidak hadir
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setExpandedId(isOpen ? null : s.id)}
+                    className={`rounded-xl px-3 py-2 text-[11px] sm:text-xs font-bold min-h-[44px] flex items-center justify-center active:scale-95 ${statusColors[status]}`}
+                  >
+                    {statusLabel[status]}
+                  </button>
+                )}
 
                 {/* Tombol expand keterangan — hanya muncul kalau S/I/A */}
                 {needsKet && (
                   <button
                     onClick={() => setExpandedId(isOpen ? null : s.id)}
-                    className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                    className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                       isOpen ? 'bg-bg-3 text-text-secondary' : 'bg-bg-2 text-text-tertiary hover:bg-bg-3'
                     }`}
                     title="Tambah keterangan"
                   >
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                 )}
               </div>
@@ -800,7 +821,10 @@ export function AbsenPage() {
               );
             })}
             {kelas?.students.every(s => getStatus(s.id) === 'H') && (
-              <p className="px-4 py-4 text-sm text-text-tertiary text-center">Semua siswa hadir ✓</p>
+              <div className="px-4 py-4 flex items-center justify-center gap-1.5 text-sm text-text-tertiary">
+                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Semua siswa hadir</span>
+              </div>
             )}
           </div>
           <div className="flex gap-3">

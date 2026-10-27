@@ -40,7 +40,7 @@ const tutorials = [
       'Buka tab "Riwayat" untuk melihat semua catatan.',
       'Gunakan kotak pencarian untuk mencari nama siswa atau tanggal.',
       'Filter tampilan: Semua, Absensi saja, atau Kasus saja.',
-      'Tap ikon pensil ✏️ untuk mengedit, atau ikon tempat sampah 🗑️ untuk menghapus data.',
+      'Tap tombol pensil untuk mengedit, atau tombol tempat sampah untuk menghapus data.',
     ],
   },
   {
@@ -78,7 +78,7 @@ export function InformasiPage() {
           <AlertTriangle className="w-5 h-5 text-red-500" />
         </div>
         <div>
-          <p className="text-sm font-bold text-red-600 dark:text-red-400 mb-1">⚠️ WAJIB BACKUP DATA!</p>
+          <p className="text-sm font-bold text-red-600 dark:text-red-400 mb-1">WAJIB BACKUP DATA!</p>
           <p className="text-xs text-red-600/80 dark:text-red-400/80 leading-relaxed">
             Lakukan <strong>BACKUP DATA (.json)</strong> minimal satu kali seminggu! Data tersimpan di browser Anda —
             menghapus cache browser dapat menghapus data jika tidak dibackup.

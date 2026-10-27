@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeft, Download, FileSpreadsheet, Search, X } from 'lucide-react';
+import { ArrowLeft, Download, FileSpreadsheet, Search, X, Info } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { RiwayatPage } from './RiwayatPage';
 import { exportCSV, exportXLS, buildDateFilter, EXPORT_PERIOD_LABELS } from '@/lib/exportUtils';
@@ -178,7 +178,7 @@ export function LaporanPage() {
       </div>
 
       {/* Baris 1 — Pilih semester */}
-      <div className="flex gap-2 overflow-x-auto pb-0.5">
+      <div className="flex gap-2 overflow-x-auto pb-1 touch-pan-x scrollbar-none">
         {([
           ['sem1',  'Sem 1 · Ganjil'],
           ['sem2',  'Sem 2 · Genap'],
@@ -188,7 +188,7 @@ export function LaporanPage() {
           <button
             key={id}
             onClick={() => { setSemesterRow(id); setPeriodeRow('harian'); }}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors ${
+            className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-bold transition-colors min-h-[40px] sm:min-h-[44px] flex items-center justify-center ${
               semesterRow === id ? 'bg-primary text-primary-foreground' : 'bg-bg-2 text-text-secondary'
             }`}
           >
@@ -199,11 +199,11 @@ export function LaporanPage() {
 
       {/* Baris 2 — Sub-filter periode (Fokus pada Rapor UTS & UAS) */}
       {showSubFilter && (
-        <div className="flex gap-2 overflow-x-auto pb-0.5">
+        <div className="flex gap-2 overflow-x-auto pb-1 touch-pan-x scrollbar-none">
           {([
-            ['harian_pra_uts', '🎯 Rapor UTS (Pra-UTS)'],
-            ['harian',         '🏆 Rapor UAS (1 Sem Penuh)'],
-            ['harian_pra_uas', '📙 Pasca-UTS (s.d. UAS)'],
+            ['harian_pra_uts', 'Rapor UTS (Pra-UTS)'],
+            ['harian',         'Rapor UAS (1 Sem Penuh)'],
+            ['harian_pra_uas', 'Pasca-UTS (s.d. UAS)'],
             ['semua',          'Semua Data'],
             ['UTS',            'Ujian UTS'],
             ['UAS',            'Ujian UAS'],
@@ -211,7 +211,7 @@ export function LaporanPage() {
             <button
               key={id}
               onClick={() => setPeriodeRow(id)}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors ${
+              className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-bold transition-colors min-h-[40px] sm:min-h-[44px] flex items-center justify-center ${
                 periodeRow === id
                   ? 'bg-surface text-foreground shadow-soft ring-1 ring-border'
                   : 'bg-bg-2/60 text-text-tertiary hover:text-text-secondary'
@@ -237,9 +237,10 @@ export function LaporanPage() {
 
       {/* Hint: jadwal UTS/UAS belum dikonfigurasi */}
       {showScheduleHint && (
-        <p className="rounded-xl bg-bg-2/70 px-3 py-2 text-[11px] text-text-tertiary">
-          ℹ Jadwal tanggal resmi {periodeRow} belum diatur di Setelan — menampilkan semua record {periodeRow} pada {semesterRow === 'sem1' ? 'Semester 1' : 'Semester 2'}.
-        </p>
+        <div className="flex items-center gap-2 rounded-xl bg-bg-2/70 px-3 py-2 text-[11px] text-text-tertiary">
+          <Info className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>Jadwal tanggal resmi {periodeRow} belum diatur di Setelan — menampilkan semua record {periodeRow} pada {semesterRow === 'sem1' ? 'Semester 1' : 'Semester 2'}.</span>
+        </div>
       )}
 
       {/* Search */}

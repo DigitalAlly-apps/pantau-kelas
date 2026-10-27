@@ -403,7 +403,7 @@ export function SiswaPage() {
                   <div className="flex gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                     <button
                       onClick={(e) => { e.stopPropagation(); setEditingStudent({ id: s.id, name: s.name, nis: s.nis }) }}
-                      className="w-8 h-8 rounded-lg bg-bg-2 hover:bg-accent-light text-text-tertiary hover:text-primary flex items-center justify-center transition-all shadow-sm"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-bg-2 hover:bg-accent-light text-text-tertiary hover:text-primary flex items-center justify-center transition-all shadow-sm"
                       title="Edit"
                       aria-label={`Edit ${s.name}`}
                     >
@@ -411,7 +411,7 @@ export function SiswaPage() {
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleRemove(s.id, s.name) }}
-                      className="w-8 h-8 rounded-lg bg-bg-2 hover:bg-semantic-red-light text-text-tertiary hover:text-semantic-red flex items-center justify-center transition-all shadow-sm"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-bg-2 hover:bg-semantic-red-light text-text-tertiary hover:text-semantic-red flex items-center justify-center transition-all shadow-sm"
                       title="Hapus"
                       aria-label={`Hapus ${s.name}`}
                     >
@@ -635,7 +635,7 @@ function StudentDetail({ student, kelasId, kelasName }: {
                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                         : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                     }`}>
-                      {c.tipe === 'prestasi' ? '🏆 Prestasi' : c.tipe === 'sholat' ? '🕌 Sholat' : '📈 Perkembangan'}
+                      {c.tipe === 'prestasi' ? 'Prestasi' : c.tipe === 'sholat' ? 'Sholat' : 'Perkembangan'}
                     </span>
                   )}
                 </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
-import { School, User, CheckCircle, ArrowRight } from 'lucide-react';
+import { School, User, CheckCircle, ArrowRight, AlertTriangle } from 'lucide-react';
 import { PantauKelasLogo } from './PantauKelasLogo';
 
 export function OnboardingWizard() {
@@ -105,7 +105,7 @@ export function OnboardingWizard() {
                    Profil Anda siap. Silakan klik menu <b className="text-foreground">Data Kelas & Siswa</b> untuk memasukkan daftar nama-nama murid Anda.
                  </p>
                  <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-xl mt-3 flex items-start gap-2 text-left">
-                   <span className="text-lg">⚠️</span>
+                   <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                    <p className="text-[12px] text-yellow-800 leading-relaxed font-medium">
                      Segala data hanya tersimpan <b>di HP Anda.</b> Rutin lakukan <b>Backup (Setelan)</b> sebulan sekali agar data aman jika ganti HP/browser terhapus.
                    </p>
