@@ -433,10 +433,12 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
       // ── C. RAKIT BALIK KE BACKUPDATA FORMAT (LOCAL STATE) ──────────────────
 
-      // Petakan siswa ke dalam kelas (urutkan abjad)
+      // Petakan siswa ke dalam kelas (pertahankan urutan lokal jika ada)
       const mappedKelasList: Kelas[] = cloudKelas
         .filter(k => !(shouldCleanupEmptyKelas && !(dbStudents || []).some(row => row.kelas_id === k.id)))
         .map(k => {
+        const localClass = localState.kelasList.find(lk => lk.id === k.id);
+        const localOrderMap = new Map((localClass?.students || []).map((s, idx) => [s.id, idx]));
         const classStudents: Student[] = (dbStudents || [])
           .filter(s => s.kelas_id === k.id)
           .map(s => ({
@@ -444,7 +446,14 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
             name: s.name,
             nis: s.nis || ''
           }))
-          .sort((a, b) => a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' }));
+          .sort((a, b) => {
+            const posA = localOrderMap.get(a.id);
+            const posB = localOrderMap.get(b.id);
+            if (posA !== undefined && posB !== undefined) return posA - posB;
+            if (posA !== undefined) return -1;
+            if (posB !== undefined) return 1;
+            return a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' });
+          });
         return {
           id: k.id,
           name: k.name,

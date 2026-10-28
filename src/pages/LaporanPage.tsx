@@ -73,12 +73,15 @@ export function LaporanPage() {
   const totalA = students.reduce((n, s) => n + s.alpha, 0);
 
   const exportFile = (kind: 'csv' | 'xls') => {
-    // 1. Urutkan siswa secara alfabetis A-Z untuk dokumen resmi raport
-    const sorted = [...students].sort((a, b) =>
-      a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' })
-    );
+    // 1. Urutkan siswa sesuai urutan resmi buku absen kelas
+    const studentOrderMap = new Map((kelas?.students || []).map((s, idx) => [s.id, idx]));
+    const sorted = [...students].sort((a, b) => {
+      const idxA = studentOrderMap.get(a.id) ?? 9999;
+      const idxB = studentOrderMap.get(b.id) ?? 9999;
+      return idxA - idxB;
+    });
 
-    // 2. Susun baris data dengan No urut 1..N
+    // 2. Susun baris data dengan No urut 1..N sesuai absen resmi
     const rows = sorted.map((s, i) => [
       i + 1,
       s.name,

@@ -117,10 +117,8 @@ export function RekapUjianPage() {
 
   const buildExportData = (separator: string) => {
     if (!kelas || mapelList.length === 0) return null;
-    // Urutkan siswa A-Z alfabetis agar hasil ekspor rapi
-    const sorted = [...kelas.students].sort((a, b) =>
-      a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' })
-    );
+    // Gunakan urutan resmi buku absen kelas
+    const sorted = kelas.students;
     const headers = ['No', 'Nama Siswa', 'NIS', ...mapelList, 'Total Tidak Hadir'];
     const rows = sorted.map((s, i) => {
       const mapelCols = mapelList.map(m => {

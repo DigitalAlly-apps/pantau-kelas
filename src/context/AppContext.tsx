@@ -60,8 +60,9 @@ interface AppState {
   setKelasList: React.Dispatch<React.SetStateAction<Kelas[]>>;
   addKelas: (name: string, jenjang?: Jenjang) => void;
   deleteKelas: (id: string) => void;
-  addStudentsToKelas: (kelasId: string, students: { name: string; nis: string }[]) => void;
+  addStudentsToKelas: (kelasId: string, students: { name: string; nis: string }[], targetPosition?: number) => void;
   removeStudentFromKelas: (kelasId: string, studentId: string) => void;
+  reorderStudentInKelas: (kelasId: string, studentId: string, targetPosition: number) => void;
   updateStudent: (kelasId: string, studentId: string, updates: { name?: string; nis?: string }) => void;
   absenRecords: AbsenRecord[];
   addAbsenRecords: (records: AbsenRecord[]) => void;
@@ -333,18 +334,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const deletedIds = storageGet<string[]>(DELETED_KELAS_KEY, []);
     if (!deletedIds.includes(id)) storageSet(DELETED_KELAS_KEY, [...deletedIds, id]);
   }, [kelasList, setKelasList, setAbsenRecords, setKasusRecords, setCatatanRecords, setConfirmedDates]);
-  const addStudentsToKelas = useCallback((kelasId: string, students: { name: string; nis: string }[]) => {
+  const addStudentsToKelas = useCallback((kelasId: string, students: { name: string; nis: string }[], targetPosition?: number) => {
     setKelasList(prev => prev.map(k => {
       if (k.id !== kelasId) return k;
       const newStudents = students.map((s, i) => ({
         id: `${kelasId}_${Date.now()}_${i}`,
         name: s.name.trim(), nis: s.nis.trim(),
       })).filter(s => s.name);
-      const combined = [...k.students, ...newStudents];
-      combined.sort((a, b) => a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' }));
-      return { ...k, students: combined };
+      if (newStudents.length === 0) return k;
+
+      const nextStudents = [...k.students];
+      // Jika targetPosition (1-based) valid, sisipkan di posisi tersebut
+      if (typeof targetPosition === 'number' && Number.isInteger(targetPosition) && targetPosition >= 1 && targetPosition <= nextStudents.length + 1) {
+        nextStudents.splice(targetPosition - 1, 0, ...newStudents);
+      } else {
+        // Default: tambahkan di paling akhir urutan kelas
+        nextStudents.push(...newStudents);
+      }
+      return { ...k, students: nextStudents };
     }));
   }, []);
+
+  const reorderStudentInKelas = useCallback((kelasId: string, studentId: string, targetPosition: number) => {
+    setKelasList(prev => prev.map(k => {
+      if (k.id !== kelasId) return k;
+      const currentIndex = k.students.findIndex(s => s.id === studentId);
+      if (currentIndex === -1) return k;
+
+      const targetIdx = Math.max(0, Math.min(k.students.length - 1, targetPosition - 1));
+      if (currentIndex === targetIdx) return k;
+
+      const nextStudents = [...k.students];
+      const [movedStudent] = nextStudents.splice(currentIndex, 1);
+      nextStudents.splice(targetIdx, 0, movedStudent);
+      return { ...k, students: nextStudents };
+    }));
+  }, []);
+
   const updateStudent = useCallback((kelasId: string, studentId: string, updates: { name?: string; nis?: string }) => {
     const previousName = kelasList.find(k => k.id === kelasId)?.students.find(s => s.id === studentId)?.name;
     const nextKelasList = kelasList.map(k => {
@@ -352,7 +378,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const updated = k.students.map(s =>
         s.id !== studentId ? s : { ...s, ...updates }
       );
-      updated.sort((a, b) => a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' }));
+      // Urutan siswa dipertahankan (tidak diacak/sort ulang abjad)
       return { ...k, students: updated };
     });
     const nextAbsenRecords = updates.name && updates.name !== previousName
@@ -676,7 +702,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       activeKelas, setActiveKelas,
       activeStudentId, setActiveStudentId,
       kelasList, setKelasList,
-      addKelas, deleteKelas, addStudentsToKelas, removeStudentFromKelas, updateStudent,
+      addKelas, deleteKelas, addStudentsToKelas, removeStudentFromKelas, reorderStudentInKelas, updateStudent,
       absenRecords, addAbsenRecords, updateAbsenRecord, deleteAbsenRecord, deleteAbsenRecordsByDateAndJenjang,
       kasusRecords, addKasusRecord, updateKasusRecord, deleteKasusRecord,
       catatanRecords, addCatatanRecord, updateCatatanRecord, deleteCatatanRecord,

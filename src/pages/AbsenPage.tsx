@@ -138,9 +138,13 @@ export function AbsenPage() {
 
   const students = useMemo(() => {
     if (!kelas) return [];
-    return kelas.students
-      .filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
-      .sort((a, b) => a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' }));
+    const withNoAbsen = (kelas.students || []).map((s, index) => ({
+      ...s,
+      noAbsen: index + 1,
+    }));
+    if (!search.trim()) return withNoAbsen;
+    const q = search.toLowerCase();
+    return withNoAbsen.filter(s => s.name.toLowerCase().includes(q));
   }, [kelas, search]);
 
   const getStatus = (studentId: string): AbsenStatus => {
@@ -691,12 +695,17 @@ export function AbsenPage() {
 
               {/* Baris utama */}
               <div className="flex items-center justify-between px-4 py-3 gap-3">
-                {/* Nama */}
+                {/* Nama & Nomor Absen */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-foreground truncate">{s.name}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="flex-shrink-0 text-[11px] font-mono font-bold text-text-tertiary bg-bg-2 px-1.5 py-0.5 rounded border border-border/50">
+                      {s.noAbsen}
+                    </span>
+                    <p className="text-[13px] font-medium text-foreground truncate">{s.name}</p>
+                  </div>
                   {/* Tampilkan keterangan singkat kalau ada */}
                   {ket && !isOpen && (
-                    <p className="text-[11px] text-text-tertiary truncate mt-0.5 italic">"{ket}"</p>
+                    <p className="text-[11px] text-text-tertiary truncate mt-0.5 italic ml-7">"{ket}"</p>
                   )}
                 </div>
 
@@ -807,8 +816,13 @@ export function AbsenPage() {
                 <div key={s.id}
                   className={`flex justify-between items-start px-4 py-3 gap-3 ${i < arr.length - 1 ? 'border-b border-border' : ''}`}>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium truncate">{s.name}</p>
-                    {ket && <p className="text-[11px] text-text-tertiary italic mt-0.5">"{ket}"</p>}
+                    <div className="flex items-center gap-2">
+                      <span className="flex-shrink-0 text-[10px] font-mono font-bold text-text-tertiary bg-bg-2 px-1 rounded border border-border/50">
+                        {i + 1}
+                      </span>
+                      <p className="text-[13px] font-medium truncate">{s.name}</p>
+                    </div>
+                    {ket && <p className="text-[11px] text-text-tertiary italic mt-0.5 ml-6">"{ket}"</p>}
                   </div>
                   <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md flex-shrink-0 ${
                     st === 'S' ? 'bg-semantic-blue-light text-semantic-blue' :

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import {
   User, ArrowLeft, CheckCircle, AlertTriangle, BookOpen,
-  Clock, Plus, Trash2, Upload, X, Pencil, Check,
+  Clock, Plus, Trash2, Upload, X, Pencil, Check, ArrowUpDown,
 } from 'lucide-react';
 import type { Jenjang } from '@/types';
 
@@ -98,12 +98,109 @@ function EditStudentModal({ studentId, initialName, initialNis, onSave, onClose 
   );
 }
 
+// ── Reorder Student Modal ─────────────────────────────────────────────────────
+function ReorderStudentModal({
+  studentName,
+  currentPosition,
+  totalStudents,
+  onSave,
+  onClose,
+}: {
+  studentName: string;
+  currentPosition: number;
+  totalStudents: number;
+  onSave: (targetPosition: number) => void;
+  onClose: () => void;
+}) {
+  const [targetPos, setTargetPos] = useState<number>(currentPosition);
+
+  const handleSave = () => {
+    if (isNaN(targetPos) || targetPos < 1 || targetPos > totalStudents) return;
+    onSave(targetPos);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm px-4 pb-4 sm:pb-0">
+      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-sm p-5 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-accent-light flex items-center justify-center text-primary">
+              <ArrowUpDown className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-semibold text-foreground">Ubah Nomor Absen</h3>
+          </div>
+          <button onClick={onClose} className="text-text-tertiary hover:text-foreground transition-colors p-1" aria-label="Tutup modal">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <div className="rounded-xl bg-bg-2 p-3">
+            <p className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">Nama Siswa</p>
+            <p className="text-sm font-bold text-foreground mt-0.5">{studentName}</p>
+            <p className="text-xs text-text-secondary mt-1">
+              Nomor absen saat ini: <span className="font-mono font-bold text-primary">No. {currentPosition}</span> dari {totalStudents} siswa
+            </p>
+          </div>
+
+          <div>
+            <label className="label-upper block mb-1.5">Nomor Absen Baru (1 - {totalStudents})</label>
+            <input
+              type="number"
+              min={1}
+              max={totalStudents}
+              value={targetPos || ''}
+              onChange={e => {
+                const val = parseInt(e.target.value, 10);
+                setTargetPos(isNaN(val) ? 1 : Math.max(1, Math.min(totalStudents, val)));
+              }}
+              className="input-soft font-mono text-base font-bold text-center"
+              autoFocus
+              onKeyDown={e => e.key === 'Enter' && handleSave()}
+            />
+          </div>
+
+          <div className="rounded-xl border border-border/80 bg-accent-light/40 p-3 text-xs text-text-secondary leading-relaxed">
+            {targetPos === currentPosition ? (
+              <span>Pilih nomor berbeda untuk mengubah urutan absen siswa ini.</span>
+            ) : targetPos < currentPosition ? (
+              <span>
+                Siswa akan dipindahkan ke <b>No. {targetPos}</b>. Siswa dari No. {targetPos} sampai No. {currentPosition - 1} akan bergeser turun (+1).
+              </span>
+            ) : (
+              <span>
+                Siswa akan dipindahkan ke <b>No. {targetPos}</b>. Siswa dari No. {currentPosition + 1} sampai No. {targetPos} akan bergeser naik (-1).
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            className="flex-1 min-h-[44px] py-2.5 rounded-xl text-sm font-semibold border border-border bg-bg-2 text-text-secondary hover:bg-bg-3 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={targetPos === currentPosition || isNaN(targetPos) || targetPos < 1 || targetPos > totalStudents}
+            className="flex-1 min-h-[44px] py-2.5 rounded-xl text-sm font-semibold text-white bg-primary hover:bg-primary-hover transition-colors disabled:opacity-40"
+          >
+            Simpan Urutan
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main SiswaPage ────────────────────────────────────────────────────────────
 export function SiswaPage() {
   const {
     kelasList, activeKelas, setActiveKelas, activeStudentId, setActiveStudentId,
     absenRecords, kasusRecords, catatanRecords,
-    addKelas, deleteKelas, addStudentsToKelas, removeStudentFromKelas,
+    addKelas, deleteKelas, addStudentsToKelas, removeStudentFromKelas, reorderStudentInKelas,
     updateStudent, showToast,
   } = useApp();
 
@@ -120,17 +217,24 @@ export function SiswaPage() {
   const [search,         setSearch]         = useState('');
   const [editingStudent, setEditingStudent] = useState<{ id: string; name: string; nis: string } | null>(null);
   const [confirmDialog,  setConfirmDialog]  = useState<{ message: string; onConfirm: () => void } | null>(null);
+  const [reorderTarget,  setReorderTarget]  = useState<{ id: string; name: string; currentPosition: number } | null>(null);
+  const [positionMode,   setPositionMode]   = useState<'end' | 'custom'>('end');
+  const [customPosition, setCustomPosition] = useState<number>(1);
 
-  // ── Filter search (hook harus dipanggil sebelum early return) ──
-  const filteredStudents = useMemo(() =>
-    (kelas?.students || [])
-      .filter(s =>
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.nis.includes(search)
-      )
-      .sort((a, b) => a.name.localeCompare(b.name, 'id', { numeric: true, sensitivity: 'base' })),
-    [kelas, search]
-  );
+  // ── Filter search (tetap mempertahankan nomor absen resmi dari indeks kelas.students) ──
+  const filteredStudents = useMemo(() => {
+    if (!kelas) return [];
+    const withNoAbsen = (kelas.students || []).map((s, index) => ({
+      ...s,
+      noAbsen: index + 1,
+    }));
+    if (!search.trim()) return withNoAbsen;
+    const q = search.toLowerCase();
+    return withNoAbsen.filter(s =>
+      s.name.toLowerCase().includes(q) ||
+      s.nis.includes(q)
+    );
+  }, [kelas, search]);
 
   // Cari siswa yang aktif. Jika activeStudentId ada tapi tidak ditemukan (kelas ganti/berubah),
   // jadikan null supaya tidak blank hitam.
@@ -166,14 +270,29 @@ export function SiswaPage() {
     });
   };
 
+  const totalStudents = kelas?.students.length || 0;
+  const nextNumber = totalStudents + 1;
+
   // ── Siswa manual ──
   const handleAddManual = () => {
     if (!manualName.trim()) return;
-    addStudentsToKelas(activeKelas, [{ name: manualName.trim(), nis: manualNis.trim() || '-' }]);
+    const targetPos = positionMode === 'custom' ? customPosition : nextNumber;
+    addStudentsToKelas(activeKelas, [{ name: manualName.trim(), nis: manualNis.trim() || '-' }], targetPos);
     setManualName('');
     setManualNis('');
-    showToast('Siswa berhasil ditambahkan');
+    if (positionMode === 'custom') {
+      setCustomPosition(prev => Math.min(prev + 1, nextNumber + 1));
+    }
+    showToast(`${manualName.trim()} berhasil ditambahkan pada No. ${targetPos}`);
     // jangan close panel supaya guru bisa terus tambah
+  };
+
+  // ── Reorder save ──
+  const handleReorderSave = (targetPosition: number) => {
+    if (!reorderTarget) return;
+    reorderStudentInKelas(activeKelas, reorderTarget.id, targetPosition);
+    showToast(`Nomor absen ${reorderTarget.name} diubah menjadi No. ${targetPosition}`);
+    setReorderTarget(null);
   };
 
   // ── Paste ──
@@ -229,6 +348,15 @@ export function SiswaPage() {
           initialNis={editingStudent.nis}
           onSave={handleEditSave}
           onClose={() => setEditingStudent(null)}
+        />
+      )}
+      {reorderTarget && kelas && (
+        <ReorderStudentModal
+          studentName={reorderTarget.name}
+          currentPosition={reorderTarget.currentPosition}
+          totalStudents={kelas.students.length}
+          onSave={handleReorderSave}
+          onClose={() => setReorderTarget(null)}
         />
       )}
 
@@ -332,8 +460,78 @@ export function SiswaPage() {
                   onKeyDown={e => e.key === 'Enter' && handleAddManual()}
                 />
               </div>
+
+              {/* Posisi Nomor Absen */}
+              {totalStudents > 0 && (
+                <div className="rounded-xl border border-border/80 bg-bg-2 p-3 flex flex-col gap-2.5">
+                  <label className="label-upper block text-[11px]">Posisi Nomor Absen</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPositionMode('end')}
+                      className={`min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center text-center transition-all ${
+                        positionMode === 'end'
+                          ? 'bg-primary text-white shadow-soft'
+                          : 'bg-surface text-text-secondary border border-border hover:bg-bg-3'
+                      }`}
+                    >
+                      <span>Nomor Terakhir</span>
+                      <span className={`text-[11px] font-normal ${positionMode === 'end' ? 'text-white/80' : 'text-text-tertiary'}`}>
+                        (No. {nextNumber})
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPositionMode('custom');
+                        if (customPosition < 1 || customPosition > nextNumber) {
+                          setCustomPosition(1);
+                        }
+                      }}
+                      className={`min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold flex flex-col items-center justify-center text-center transition-all ${
+                        positionMode === 'custom'
+                          ? 'bg-primary text-white shadow-soft'
+                          : 'bg-surface text-text-secondary border border-border hover:bg-bg-3'
+                      }`}
+                    >
+                      <span>Sisipkan Tertentu</span>
+                      <span className={`text-[11px] font-normal ${positionMode === 'custom' ? 'text-white/80' : 'text-text-tertiary'}`}>
+                        (Pilih no 1 - {nextNumber})
+                      </span>
+                    </button>
+                  </div>
+
+                  {positionMode === 'custom' ? (
+                    <div className="flex flex-col gap-1.5 pt-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-text-secondary">Posisikan di nomor:</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={nextNumber}
+                          value={customPosition}
+                          onChange={e => {
+                            const val = parseInt(e.target.value, 10);
+                            setCustomPosition(isNaN(val) ? 1 : Math.max(1, Math.min(nextNumber, val)));
+                          }}
+                          className="input-soft w-20 py-1.5 text-center font-mono font-bold text-sm"
+                        />
+                        <span className="text-xs text-text-tertiary">dari {nextNumber} posisi</span>
+                      </div>
+                      <p className="text-[11px] text-text-tertiary leading-tight">
+                        Siswa baru akan menjadi <b>No. {customPosition}</b>. Siswa lama dari No. {customPosition} ke atas otomatis bergeser turun (+1).
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-text-tertiary leading-tight">
+                      Siswa akan ditempatkan di <b>No. {nextNumber}</b> (paling akhir). Nomor absen siswa yang sudah ada tidak akan bergeser.
+                    </p>
+                  )}
+                </div>
+              )}
+
               <button onClick={handleAddManual} disabled={!manualName.trim()}
-                className="btn-soft btn-primary-soft w-full py-2.5 disabled:opacity-40">
+                className="btn-soft btn-primary-soft w-full py-2.5 min-h-[44px] disabled:opacity-40">
                 + Tambah Siswa
               </button>
             </div>
@@ -385,7 +583,7 @@ export function SiswaPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredStudents.map((s, i) => {
+          {filteredStudents.map((s) => {
             const alphaCount = absenRecords.filter(a => a.kelasId === activeKelas && a.studentId === s.id && a.status === 'A').length;
             const kasusCount = kasusRecords.filter(k => k.kelasId === activeKelas && k.studentId === s.id).length;
 
@@ -394,13 +592,34 @@ export function SiswaPage() {
                 className="card-soft flex flex-col p-5 group relative cursor-pointer hover:border-primary/40"
                 onClick={() => setActiveStudentId(s.id)}
               >
-                {/* Header Card: Avatar & Actions */}
+                {/* Header Card: Avatar with No Absen & Actions */}
                 <div className="flex justify-between items-start mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-accent-light flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-                    <User className="w-6 h-6 text-primary" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-accent-light flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform relative">
+                      <User className="w-6 h-6 text-primary" />
+                      <span className="absolute -bottom-1.5 -right-1.5 bg-primary text-white text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md shadow-sm border border-surface">
+                        {s.noAbsen}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-mono font-bold text-text-tertiary">
+                        No. Absen {s.noAbsen}
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="flex gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReorderTarget({ id: s.id, name: s.name, currentPosition: s.noAbsen });
+                      }}
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-bg-2 hover:bg-accent-light text-text-tertiary hover:text-primary flex items-center justify-center transition-all shadow-sm"
+                      title="Ubah nomor absen"
+                      aria-label={`Ubah nomor absen ${s.name}`}
+                    >
+                      <ArrowUpDown className="w-4 h-4" />
+                    </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); setEditingStudent({ id: s.id, name: s.name, nis: s.nis }) }}
                       className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-bg-2 hover:bg-accent-light text-text-tertiary hover:text-primary flex items-center justify-center transition-all shadow-sm"
@@ -454,9 +673,12 @@ function StudentDetail({ student, kelasId, kelasName }: {
   kelasName: string;
 }) {
   const {
-    absenRecords, kasusRecords, catatanRecords,
+    kelasList, absenRecords, kasusRecords, catatanRecords,
     setActiveStudentId, updateStudent, showToast,
   } = useApp();
+
+  const kelas = kelasList.find(k => k.id === kelasId);
+  const noAbsen = (kelas?.students.findIndex(s => s.id === student.id) ?? -1) + 1;
 
   const [isEditing,  setIsEditing]  = useState(false);
   const [editName,   setEditName]   = useState('');
@@ -522,8 +744,13 @@ function StudentDetail({ student, kelasId, kelasName }: {
       {/* Profile card */}
       <div className="bg-surface rounded-2xl shadow-soft p-5">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-accent-light flex items-center justify-center flex-shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-accent-light flex items-center justify-center flex-shrink-0 relative">
             <User className="w-7 h-7 text-primary" />
+            {noAbsen > 0 && (
+              <span className="absolute -bottom-1 -right-1 bg-primary text-white text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md shadow-sm border border-surface">
+                #{noAbsen}
+              </span>
+            )}
           </div>
 
           {isEditing ? (
@@ -556,6 +783,12 @@ function StudentDetail({ student, kelasId, kelasName }: {
           ) : (
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-primary bg-accent-light px-2 py-0.5 rounded-md">
+                  No. Absen {noAbsen > 0 ? noAbsen : '-'}
+                </span>
+                <span className="text-xs text-text-tertiary">Kelas {kelasName}</span>
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
                 <h2 className="text-lg font-bold text-foreground truncate">{student.name}</h2>
                 <button onClick={startEdit}
                   className="p-1.5 rounded-lg hover:bg-bg-2 text-text-tertiary hover:text-primary transition-colors flex-shrink-0"
@@ -563,10 +796,9 @@ function StudentDetail({ student, kelasId, kelasName }: {
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-text-secondary mt-0.5">
                 NISN: <span className="font-mono">{student.nis === '-' ? '—' : student.nis}</span>
               </p>
-              <p className="text-xs text-text-tertiary">Kelas {kelasName}</p>
             </div>
           )}
         </div>
