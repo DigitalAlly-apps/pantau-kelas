@@ -188,7 +188,7 @@ export function RekapUjianPage() {
           <button
             key={id}
             onClick={() => { setSemesterFilter(id); setExpandedMapel(null); }}
-            className={`flex-1 py-2.5 text-[12px] font-bold rounded-lg transition-all ${
+            className={`flex-1 py-2.5 text-[12px] font-bold rounded-lg transition-all min-h-[44px] flex items-center justify-center ${
               semesterFilter === id ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary hover:text-text-secondary'
             }`}
           >
@@ -203,7 +203,7 @@ export function RekapUjianPage() {
           <button
             key={p}
             onClick={() => { setPeriodeFilter(p); setExpandedMapel(null); }}
-            className={`flex-1 py-2.5 text-[13px] font-bold rounded-lg transition-all ${
+            className={`flex-1 py-2.5 text-[13px] font-bold rounded-lg transition-all min-h-[44px] flex items-center justify-center ${
               periodeFilter === p ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary hover:text-text-secondary'
             }`}
           >
@@ -228,7 +228,7 @@ export function RekapUjianPage() {
               sessionStorage.setItem('pk_absen_periode', periodeFilter);
               setActiveTab('absen');
             }}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-soft hover:opacity-90 transition-opacity"
+            className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-soft hover:opacity-90 transition-opacity min-h-[44px]"
           >
             + Input {periodeFilter} Sekarang
           </button>

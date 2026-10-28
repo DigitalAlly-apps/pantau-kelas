@@ -202,11 +202,11 @@ export function LaporanPage() {
           </div>
           {selected.aktif ? <p className="mt-3 text-xs font-bold text-semantic-red">{selected.aktif} kasus aktif</p> : null}
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            <button onClick={() => setManageMode('absen')} className="btn-soft btn-secondary-soft py-2.5 text-xs">Kelola Absensi</button>
-            <button onClick={() => setManageMode('jurnal')} className="btn-soft btn-secondary-soft py-2.5 text-xs">Kelola Jurnal</button>
+            <button onClick={() => setManageMode('absen')} className="btn-soft btn-secondary-soft py-2.5 text-xs min-h-[44px] flex items-center justify-center">Kelola Absensi</button>
+            <button onClick={() => setManageMode('jurnal')} className="btn-soft btn-secondary-soft py-2.5 text-xs min-h-[44px] flex items-center justify-center">Kelola Jurnal</button>
             <button
               onClick={() => { sessionStorage.setItem('jg_jurnal_student_id', selected.id); setActiveTab('jurnal'); }}
-              className="btn-soft btn-primary-soft py-2.5 text-xs"
+              className="btn-soft btn-primary-soft py-2.5 text-xs min-h-[44px] flex items-center justify-center"
             >Tambah Jurnal</button>
           </div>
         </section>
@@ -245,7 +245,7 @@ export function LaporanPage() {
         </div>
         <button
           onClick={() => setShowRecap(true)}
-          className="rounded-xl bg-bg-2 px-3 py-2 text-xs font-bold text-text-secondary hover:text-foreground hover:bg-bg-3 transition-colors"
+          className="rounded-xl bg-bg-2 px-3 py-2 text-xs font-bold text-text-secondary hover:text-foreground hover:bg-bg-3 transition-colors min-h-[44px] flex items-center justify-center"
         >
           Rekap & export
         </button>
@@ -262,7 +262,7 @@ export function LaporanPage() {
           <button
             key={id}
             onClick={() => { setSemesterRow(id); setPeriodeRow('harian'); }}
-            className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-bold transition-colors min-h-[40px] sm:min-h-[44px] flex items-center justify-center ${
+            className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-bold transition-colors min-h-[44px] flex items-center justify-center ${
               semesterRow === id ? 'bg-primary text-primary-foreground' : 'bg-bg-2 text-text-secondary'
             }`}
           >
@@ -285,7 +285,7 @@ export function LaporanPage() {
             <button
               key={id}
               onClick={() => setPeriodeRow(id)}
-              className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-bold transition-colors min-h-[40px] sm:min-h-[44px] flex items-center justify-center ${
+              className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-bold transition-colors min-h-[44px] flex items-center justify-center ${
                 periodeRow === id
                   ? 'bg-surface text-foreground shadow-soft ring-1 ring-border'
                   : 'bg-bg-2/60 text-text-tertiary hover:text-text-secondary'
@@ -386,8 +386,12 @@ export function LaporanPage() {
                 <h3 className="mt-1 text-lg font-bold">{students.length} siswa</h3>
                 <p className="mt-0.5 text-[11px] font-semibold text-primary">{periodLabel}</p>
               </div>
-              <button onClick={() => setShowRecap(false)} className="mt-0.5 rounded-xl bg-bg-2 p-2">
-                <X className="w-4" />
+              <button
+                onClick={() => setShowRecap(false)}
+                aria-label="Tutup modal"
+                className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl bg-bg-2 hover:bg-bg-3 flex items-center justify-center transition-colors"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -406,7 +410,7 @@ export function LaporanPage() {
             </div>
 
             <p className="mt-3 text-xs text-text-secondary">
-              Hasil ekspor otomatis diurutkan rapi berdasarkan abjad nama siswa (A–Z) sesuai filter aktif.
+              Hasil ekspor otomatis diurutkan rapi sesuai nomor absen resmi kelas pada filter aktif.
             </p>
 
             <div className="mt-4 flex gap-2">

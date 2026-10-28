@@ -114,7 +114,7 @@ export function AbsensiGapWidget({ onGoToAbsen, lookbackDays = 30 }: Props) {
           <button
             key={dateStr}
             onClick={() => onGoToAbsen(dateStr)}
-            className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-bg-2 hover:bg-orange-50 dark:hover:bg-orange-950/30 hover:border-orange-200 dark:hover:border-orange-800/40 border border-transparent transition-all group text-left"
+            className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-bg-2 hover:bg-orange-50 dark:hover:bg-orange-950/30 hover:border-orange-200 dark:hover:border-orange-800/40 border border-transparent transition-all group text-left min-h-[44px]"
           >
             <div className="flex items-center gap-2.5">
               <CalendarCheck className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
@@ -132,7 +132,7 @@ export function AbsensiGapWidget({ onGoToAbsen, lookbackDays = 30 }: Props) {
       {hariKosong.length > PREVIEW_COUNT && (
         <button
           onClick={() => setExpanded(v => !v)}
-          className="mt-2 w-full flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold text-text-secondary hover:text-primary transition-colors"
+          className="mt-2 w-full flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold text-text-secondary hover:text-primary transition-colors min-h-[44px]"
         >
           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
           {expanded ? 'Sembunyikan' : `Tampilkan ${sisanya} lagi`}

@@ -503,16 +503,16 @@ export function AbsenPage() {
           {liburForDate ? (
             <button
               onClick={handleDeleteLibur}
-              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold bg-semantic-red-light text-semantic-red hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+              className="flex-shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold bg-semantic-red-light text-semantic-red hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors min-h-[44px]"
             >
-              <X className="w-3 h-3" /> Batalkan Libur
+              <X className="w-4 h-4" /> Batalkan Libur
             </button>
           ) : (
             <button
               onClick={() => setShowLiburForm(v => !v)}
-              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold bg-bg-3 text-text-secondary hover:text-primary transition-colors"
+              className="flex-shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold bg-bg-3 text-text-secondary hover:text-primary transition-colors min-h-[44px]"
             >
-              <CalendarX className="w-3 h-3" /> Tandai Libur
+              <CalendarX className="w-4 h-4" /> Tandai Libur
             </button>
           )}
         </div>
@@ -533,8 +533,8 @@ export function AbsenPage() {
               </p>
             )}
             <div className="flex gap-2">
-              <button onClick={() => setShowLiburForm(false)} className="btn-soft btn-secondary-soft flex-1 py-2 text-sm">Batal</button>
-              <button onClick={handleAddLibur} className="btn-soft btn-primary-soft flex-1 py-2 text-sm">Simpan Libur</button>
+              <button onClick={() => setShowLiburForm(false)} className="btn-soft btn-secondary-soft flex-1 py-2 text-sm min-h-[44px] flex items-center justify-center">Batal</button>
+              <button onClick={handleAddLibur} className="btn-soft btn-primary-soft flex-1 py-2 text-sm min-h-[44px] flex items-center justify-center">Simpan Libur</button>
             </div>
           </div>
         )}
@@ -600,7 +600,7 @@ export function AbsenPage() {
                   key={label}
                   type="button"
                   onClick={() => setJamUjian(jamUjian === label ? '' : label)}
-                  className={`flex-1 py-1.5 rounded-xl border text-[11px] font-bold transition-all active:scale-[0.97] ${
+                  className={`flex-1 py-1.5 rounded-xl border text-[11px] font-bold transition-all active:scale-[0.97] min-h-[44px] flex items-center justify-center ${
                     jamUjian === label
                       ? 'bg-primary text-white border-primary shadow-soft'
                       : 'bg-surface border-border text-text-secondary hover:border-primary/50'
@@ -660,8 +660,8 @@ export function AbsenPage() {
             </p>
           </div>
           <button onClick={startEdit}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-semantic-blue text-white rounded-lg text-[12px] font-semibold flex-shrink-0 hover:bg-blue-600 transition-colors">
-            <Pencil className="w-3 h-3" /> Edit
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-semantic-blue text-white rounded-xl text-[12px] font-semibold flex-shrink-0 hover:bg-blue-600 transition-colors min-h-[44px]">
+            <Pencil className="w-3.5 h-3.5" /> Edit
           </button>
         </div>
       )}
@@ -729,10 +729,11 @@ export function AbsenPage() {
                 {needsKet && (
                   <button
                     onClick={() => setExpandedId(isOpen ? null : s.id)}
-                    className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                    className={`flex-shrink-0 w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center transition-all ${
                       isOpen ? 'bg-bg-3 text-text-secondary' : 'bg-bg-2 text-text-tertiary hover:bg-bg-3'
                     }`}
                     title="Tambah keterangan"
+                    aria-label="Tambah keterangan"
                   >
                     <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -743,7 +744,15 @@ export function AbsenPage() {
               {needsKet && isOpen && (
                 <div className="px-4 pb-3 flex flex-col gap-2 bg-bg-2 border-t border-border">
                   <div className="grid grid-cols-4 gap-1 pt-2">
-                    {statuses.map(st => <button key={st} onClick={() => toggleStatus(s.id, st)} className={`rounded-lg py-2 text-[10px] font-bold ${status === st ? statusColors[st] : 'bg-surface text-text-tertiary'}`}>{statusLabel[st]}</button>)}
+                    {statuses.map(st => (
+                      <button
+                        key={st}
+                        onClick={() => toggleStatus(s.id, st)}
+                        className={`rounded-lg py-2 text-[10px] font-bold min-h-[44px] flex items-center justify-center ${status === st ? statusColors[st] : 'bg-surface text-text-tertiary'}`}
+                      >
+                        {statusLabel[st]}
+                      </button>
+                    ))}
                   </div>
                   <label className="label-upper pt-2 block">
                     Keterangan {statusLabel[status]}

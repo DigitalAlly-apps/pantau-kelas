@@ -215,8 +215,8 @@ export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Prop
                           </div>
                         )}
                         <div className="flex gap-2 justify-end">
-                          <button onClick={() => setEditId(null)} className="btn-soft btn-secondary-soft px-3 py-1.5 text-xs flex items-center gap-1"><X className="w-3 h-3"/>Batal</button>
-                          <button onClick={saveEdit} className="btn-soft btn-primary-soft px-3 py-1.5 text-xs flex items-center gap-1"><Check className="w-3 h-3"/>Simpan</button>
+                          <button onClick={() => setEditId(null)} className="btn-soft btn-secondary-soft px-3 py-1.5 text-xs min-h-[44px] flex items-center justify-center gap-1"><X className="w-3.5 h-3.5"/>Batal</button>
+                          <button onClick={saveEdit} className="btn-soft btn-primary-soft px-3 py-1.5 text-xs min-h-[44px] flex items-center justify-center gap-1"><Check className="w-3.5 h-3.5"/>Simpan</button>
                         </div>
                       </div>
                     ) : (
@@ -231,8 +231,8 @@ export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Prop
                           </p>
                         </div>
                         <span className={`text-xs font-bold px-2 py-1 rounded-lg flex-shrink-0 ${STATUS_COLOR[r.status]}`}>{STATUS_LABEL[r.status]}</span>
-                        <button onClick={() => startEdit(r.id, 'absen')} aria-label="Edit absensi" className="w-9 h-9 flex items-center justify-center hover:bg-bg-2 rounded-lg text-text-secondary hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setConfirmDelete({ id: r.id, type: 'absen' })} aria-label="Hapus absensi" className="w-9 h-9 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-text-secondary hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => startEdit(r.id, 'absen')} aria-label="Edit absensi" className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-bg-2 rounded-xl text-text-secondary hover:text-primary transition-colors"><Pencil className="w-4 h-4" /></button>
+                        <button onClick={() => setConfirmDelete({ id: r.id, type: 'absen' })} aria-label="Hapus absensi" className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-text-secondary hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     )}
                   </div>
@@ -276,8 +276,8 @@ export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Prop
                         </div>
                         <input value={editData.tindakLanjut || ''} onChange={e => setEditData(p => ({ ...p, tindakLanjut: e.target.value }))} placeholder="Tindak lanjut (opsional)" className="input-soft text-xs" />
                         <div className="flex gap-2 justify-end">
-                          <button onClick={() => setEditId(null)} className="btn-soft btn-secondary-soft px-3 py-1.5 text-xs flex items-center gap-1"><X className="w-3 h-3"/>Batal</button>
-                          <button onClick={saveEdit} className="btn-soft btn-primary-soft px-3 py-1.5 text-xs flex items-center gap-1"><Check className="w-3 h-3"/>Simpan</button>
+                          <button onClick={() => setEditId(null)} className="btn-soft btn-secondary-soft px-3 py-1.5 text-xs min-h-[44px] flex items-center justify-center gap-1"><X className="w-3.5 h-3.5"/>Batal</button>
+                          <button onClick={saveEdit} className="btn-soft btn-primary-soft px-3 py-1.5 text-xs min-h-[44px] flex items-center justify-center gap-1"><Check className="w-3.5 h-3.5"/>Simpan</button>
                         </div>
                       </div>
                     ) : (
@@ -291,7 +291,7 @@ export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Prop
                             <button
                               onClick={() => cycleStatus(r)}
                               title="Klik untuk ubah status"
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
+                              className={`text-[10px] font-bold px-2 py-1 min-h-[36px] flex items-center rounded-full border transition-all ${
                                 !r.status || r.status === 'baru'
                                   ? 'bg-red-50 border-red-200 text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400'
                                   : r.status === 'proses'
@@ -310,9 +310,9 @@ export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Prop
                           {r.tindakLanjut && <p className="text-xs text-text-tertiary mt-0.5 italic">↳ {r.tindakLanjut}</p>}
                           <p className="text-xs text-text-tertiary mt-0.5">{r.date}</p>
                         </div>
-                        <div className="flex flex-shrink-0">
-                          <button onClick={() => startEdit(r.id, 'kasus')} aria-label="Edit kasus" className="w-9 h-9 flex items-center justify-center hover:bg-bg-2 rounded-lg text-text-secondary hover:text-primary"><Pencil className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => setConfirmDelete({ id: r.id, type: 'kasus' })} aria-label="Hapus kasus" className="w-9 h-9 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-text-secondary hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <div className="flex flex-shrink-0 gap-1">
+                          <button onClick={() => startEdit(r.id, 'kasus')} aria-label="Edit kasus" className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-bg-2 rounded-xl text-text-secondary hover:text-primary transition-colors"><Pencil className="w-4 h-4" /></button>
+                          <button onClick={() => setConfirmDelete({ id: r.id, type: 'kasus' })} aria-label="Hapus kasus" className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-text-secondary hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </div>
                     )}
@@ -349,8 +349,8 @@ export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Prop
                         <p className="text-sm font-semibold text-foreground">{r.studentName}</p>
                         <textarea value={editData.content || ''} onChange={e => setEditData(p => ({ ...p, content: e.target.value }))} rows={3} className="input-soft text-xs resize-none" autoFocus />
                         <div className="flex gap-2 justify-end">
-                          <button onClick={() => setEditId(null)} className="btn-soft btn-secondary-soft px-3 py-1.5 text-xs flex items-center gap-1"><X className="w-3 h-3"/>Batal</button>
-                          <button onClick={saveEdit} className="btn-soft btn-primary-soft px-3 py-1.5 text-xs flex items-center gap-1"><Check className="w-3 h-3"/>Simpan</button>
+                          <button onClick={() => setEditId(null)} className="btn-soft btn-secondary-soft px-3 py-1.5 text-xs min-h-[44px] flex items-center justify-center gap-1"><X className="w-3.5 h-3.5"/>Batal</button>
+                          <button onClick={saveEdit} className="btn-soft btn-primary-soft px-3 py-1.5 text-xs min-h-[44px] flex items-center justify-center gap-1"><Check className="w-3.5 h-3.5"/>Simpan</button>
                         </div>
                       </div>
                     ) : (
@@ -366,9 +366,9 @@ export function RiwayatPage({ studentId, initialFilter = 'semua', onBack }: Prop
                       </div>
                     )}
                     {editId !== r.id && (
-                      <div className="flex flex-shrink-0">
-                        <button onClick={() => startEdit(r.id, 'catatan')} className="p-1.5 hover:bg-bg-2 rounded-lg text-text-secondary hover:text-primary" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setConfirmDelete({ id: r.id, type: 'catatan' })} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-text-secondary hover:text-red-500" title="Hapus"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <div className="flex flex-shrink-0 gap-1">
+                        <button onClick={() => startEdit(r.id, 'catatan')} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-bg-2 rounded-xl text-text-secondary hover:text-primary transition-colors" title="Edit" aria-label="Edit catatan"><Pencil className="w-4 h-4" /></button>
+                        <button onClick={() => setConfirmDelete({ id: r.id, type: 'catatan' })} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-text-secondary hover:text-red-500 transition-colors" title="Hapus" aria-label="Hapus catatan"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     )}
                   </div>

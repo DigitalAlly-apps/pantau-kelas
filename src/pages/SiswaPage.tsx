@@ -52,8 +52,8 @@ function EditStudentModal({ studentId, initialName, initialNis, onSave, onClose 
       <div className="bg-surface rounded-2xl shadow-xl w-full max-w-sm p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-foreground">Edit Data Siswa</h3>
-          <button onClick={onClose} className="text-text-tertiary hover:text-foreground transition-colors">
-            <X className="w-4 h-4" />
+          <button onClick={onClose} aria-label="Tutup modal" className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl hover:bg-bg-2 text-text-tertiary hover:text-foreground transition-colors flex items-center justify-center">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -129,8 +129,8 @@ function ReorderStudentModal({
             </div>
             <h3 className="text-sm font-semibold text-foreground">Ubah Nomor Absen</h3>
           </div>
-          <button onClick={onClose} className="text-text-tertiary hover:text-foreground transition-colors p-1" aria-label="Tutup modal">
-            <X className="w-4 h-4" />
+          <button onClick={onClose} className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl hover:bg-bg-2 text-text-tertiary hover:text-foreground transition-colors flex items-center justify-center" aria-label="Tutup modal">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -370,13 +370,14 @@ export function SiswaPage() {
           </div>
           <div className="flex gap-2">
           <button onClick={() => setShowAddKelas(true)}
-            className="btn-soft btn-secondary-soft flex items-center gap-1.5 px-3 py-2 text-xs">
-            <Plus className="h-3.5 w-3.5" /> Tambah Kelas
+            className="btn-soft btn-secondary-soft flex items-center justify-center gap-1.5 px-3 py-2 text-xs min-h-[44px]">
+            <Plus className="h-4 w-4" /> Tambah Kelas
           </button>
           {kelasList.length > 1 && (
             <button onClick={handleDeleteKelas}
-              className="btn-soft flex items-center gap-1.5 bg-semantic-red-light px-3 py-2 text-xs text-semantic-red">
-              <Trash2 className="w-3 h-3" />
+              aria-label="Hapus kelas aktif"
+              className="btn-soft flex items-center justify-center gap-1.5 bg-semantic-red-light px-3 py-2 text-xs text-semantic-red min-h-[44px] min-w-[44px]">
+              <Trash2 className="w-4 h-4" />
             </button>
           )}
           </div>
@@ -393,8 +394,8 @@ export function SiswaPage() {
         <div className="bg-surface rounded-2xl shadow-soft p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-foreground">Tambah Kelas Baru</h3>
-            <button onClick={() => setShowAddKelas(false)} className="text-text-tertiary">
-              <X className="w-4 h-4" />
+            <button onClick={() => setShowAddKelas(false)} aria-label="Tutup form kelas" className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl hover:bg-bg-2 text-text-tertiary hover:text-foreground transition-colors flex items-center justify-center">
+              <X className="w-5 h-5" />
             </button>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -404,7 +405,7 @@ export function SiswaPage() {
             <select value={newKelasJenjang} onChange={e => setNewKelasJenjang(e.target.value as Jenjang)} className="input-soft sm:w-28">
               {JENJANG_OPTIONS.map(j => <option key={j} value={j}>{j}</option>)}
             </select>
-            <button onClick={handleAddKelas} className="btn-soft btn-primary-soft">Tambah</button>
+            <button onClick={handleAddKelas} className="btn-soft btn-primary-soft min-h-[44px] px-4">Tambah</button>
           </div>
         </div>
       )}
@@ -608,13 +609,13 @@ export function SiswaPage() {
                     </div>
                   </div>
                   
-                  <div className="flex gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                  <div className="flex gap-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setReorderTarget({ id: s.id, name: s.name, currentPosition: s.noAbsen });
                       }}
-                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-bg-2 hover:bg-accent-light text-text-tertiary hover:text-primary flex items-center justify-center transition-all shadow-sm"
+                      className="min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:w-8 sm:h-8 rounded-xl bg-bg-2 hover:bg-accent-light text-text-tertiary hover:text-primary flex items-center justify-center transition-all shadow-sm"
                       title="Ubah nomor absen"
                       aria-label={`Ubah nomor absen ${s.name}`}
                     >
@@ -622,7 +623,7 @@ export function SiswaPage() {
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); setEditingStudent({ id: s.id, name: s.name, nis: s.nis }) }}
-                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-bg-2 hover:bg-accent-light text-text-tertiary hover:text-primary flex items-center justify-center transition-all shadow-sm"
+                      className="min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:w-8 sm:h-8 rounded-xl bg-bg-2 hover:bg-accent-light text-text-tertiary hover:text-primary flex items-center justify-center transition-all shadow-sm"
                       title="Edit"
                       aria-label={`Edit ${s.name}`}
                     >
@@ -630,7 +631,7 @@ export function SiswaPage() {
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleRemove(s.id, s.name) }}
-                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-bg-2 hover:bg-semantic-red-light text-text-tertiary hover:text-semantic-red flex items-center justify-center transition-all shadow-sm"
+                      className="min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:w-8 sm:h-8 rounded-xl bg-bg-2 hover:bg-semantic-red-light text-text-tertiary hover:text-semantic-red flex items-center justify-center transition-all shadow-sm"
                       title="Hapus"
                       aria-label={`Hapus ${s.name}`}
                     >
@@ -724,18 +725,18 @@ function StudentDetail({ student, kelasId, kelasName }: {
     <div className="flex flex-col gap-5 max-w-4xl pb-10 w-full mx-auto">
       <div className="flex items-center justify-between">
         <button onClick={() => setActiveStudentId(null)}
-          className="flex items-center gap-2 text-sm text-text-secondary hover:text-foreground transition-colors self-start">
+          className="flex items-center gap-2 text-sm text-text-secondary hover:text-foreground transition-colors self-start min-h-[44px]">
           <ArrowLeft className="w-4 h-4" /> Kembali
         </button>
         
         {/* Quick Actions */}
         <div className="flex gap-2">
-          <button onClick={() => { /* Wait for UX step to auto-select student, for now just navigates */ window.dispatchEvent(new CustomEvent('change-view', { detail: 'jurnal' })); }} 
-            className="btn-soft btn-secondary-soft text-[12px] py-1.5 px-3 flex items-center gap-1.5 border border-semantic-red/10 text-semantic-red hover:bg-semantic-red-light">
+          <button onClick={() => { window.dispatchEvent(new CustomEvent('change-view', { detail: 'jurnal' })); }} 
+            className="btn-soft btn-secondary-soft text-[12px] px-3 min-h-[44px] flex items-center gap-1.5 border border-semantic-red/10 text-semantic-red hover:bg-semantic-red-light">
             <AlertTriangle className="w-3.5 h-3.5" /> + Kasus
           </button>
           <button onClick={() => { window.dispatchEvent(new CustomEvent('change-view', { detail: 'jurnal' })); }} 
-            className="btn-soft btn-secondary-soft text-[12px] py-1.5 px-3 flex items-center gap-1.5 border border-primary/10 text-primary hover:bg-accent-light">
+            className="btn-soft btn-secondary-soft text-[12px] px-3 min-h-[44px] flex items-center gap-1.5 border border-primary/10 text-primary hover:bg-accent-light">
             <BookOpen className="w-3.5 h-3.5" /> + Catatan
           </button>
         </div>
@@ -771,11 +772,11 @@ function StudentDetail({ student, kelasId, kelasName }: {
               />
               <div className="flex gap-2">
                 <button onClick={saveEdit}
-                  className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white flex items-center justify-center gap-1">
+                  className="flex-1 min-h-[44px] rounded-xl text-xs font-semibold bg-primary text-white flex items-center justify-center gap-1">
                   <Check className="w-3 h-3" /> Simpan
                 </button>
                 <button onClick={() => setIsEditing(false)}
-                  className="flex-1 py-1.5 rounded-lg text-xs font-semibold border border-border bg-bg-2 text-text-secondary">
+                  className="flex-1 min-h-[44px] rounded-xl text-xs font-semibold border border-border bg-bg-2 text-text-secondary flex items-center justify-center">
                   Batal
                 </button>
               </div>
@@ -791,9 +792,10 @@ function StudentDetail({ student, kelasId, kelasName }: {
               <div className="flex items-center gap-2 mt-0.5">
                 <h2 className="text-lg font-bold text-foreground truncate">{student.name}</h2>
                 <button onClick={startEdit}
-                  className="p-1.5 rounded-lg hover:bg-bg-2 text-text-tertiary hover:text-primary transition-colors flex-shrink-0"
-                  title="Edit data siswa">
-                  <Pencil className="w-3.5 h-3.5" />
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-bg-2 text-text-tertiary hover:text-primary transition-colors flex-shrink-0"
+                  title="Edit data siswa"
+                  aria-label="Edit data siswa">
+                  <Pencil className="w-4 h-4" />
                 </button>
               </div>
               <p className="text-sm text-text-secondary mt-0.5">

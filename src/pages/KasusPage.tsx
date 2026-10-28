@@ -160,8 +160,8 @@ export function KasusPage() {
           <div className="flex items-center justify-between mb-1.5">
             <label className="label-upper">Deskripsi Kasus</label>
             <button onClick={() => setShowTemplates(!showTemplates)}
-              className="flex items-center gap-1 text-[11px] text-primary font-semibold hover:underline">
-              <Zap className="w-3 h-3" /> Template
+              className="flex items-center gap-1 text-[11px] text-primary font-semibold hover:underline min-h-[44px] px-2 py-1">
+              <Zap className="w-3.5 h-3.5" /> Template
             </button>
           </div>
 
@@ -170,7 +170,7 @@ export function KasusPage() {
             <div className="flex flex-wrap gap-2 mb-2">
               {TEMPLATE_KASUS.map(t => (
                 <button key={t} onClick={() => { setDescription(t); setShowTemplates(false); }}
-                  className="text-[11px] px-2.5 py-1 bg-accent-light text-primary rounded-lg hover:bg-primary hover:text-white transition-all">
+                  className="text-[11px] px-3 py-1.5 bg-accent-light text-primary rounded-lg hover:bg-primary hover:text-white transition-all min-h-[36px] flex items-center">
                   {t}
                 </button>
               ))}

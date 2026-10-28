@@ -201,15 +201,15 @@ export function CatatanPage() {
                     autoFocus
                   />
                   <div className="flex gap-2 justify-end">
-                    <button onClick={() => setEditId(null)} className="btn-soft btn-secondary-soft px-3 py-1.5 text-xs flex items-center gap-1"><X className="w-3 h-3"/>Batal</button>
-                    <button onClick={saveEdit} className="btn-soft btn-primary-soft px-3 py-1.5 text-xs flex items-center gap-1"><Check className="w-3 h-3"/>Simpan</button>
+                    <button onClick={() => setEditId(null)} className="btn-soft btn-secondary-soft px-3 py-1.5 text-xs min-h-[44px] flex items-center justify-center gap-1"><X className="w-3.5 h-3.5"/>Batal</button>
+                    <button onClick={saveEdit} className="btn-soft btn-primary-soft px-3 py-1.5 text-xs min-h-[44px] flex items-center justify-center gap-1"><Check className="w-3.5 h-3.5"/>Simpan</button>
                   </div>
                 </div>
               ) : (
                 /* ── View mode ── */
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <button onClick={() => handleStudentClick(c.studentId)} className="text-[13px] font-semibold text-foreground hover:text-primary transition-colors text-left">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap sm:flex-nowrap">
+                    <button onClick={() => handleStudentClick(c.studentId)} className="text-[13px] font-semibold text-foreground hover:text-primary transition-colors text-left min-h-[44px] flex items-center">
                       {c.studentName}
                     </button>
                     {c.tipe && (
@@ -218,11 +218,11 @@ export function CatatanPage() {
                       </span>
                     )}
                     <span className="ml-auto text-[11px] text-text-tertiary">{c.date}</span>
-                    <button onClick={() => startEdit(c)} className="p-1 hover:bg-bg-2 rounded-lg text-text-tertiary hover:text-primary transition-colors" title="Edit">
-                      <Pencil className="w-3.5 h-3.5" />
+                    <button onClick={() => startEdit(c)} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-bg-2 rounded-xl text-text-tertiary hover:text-primary transition-colors" title="Edit" aria-label="Edit catatan">
+                      <Pencil className="w-4 h-4" />
                     </button>
-                    <button onClick={() => setConfirmDeleteId(c.id)} className="p-1 hover:bg-semantic-red-light rounded-lg text-text-tertiary hover:text-semantic-red transition-colors" title="Hapus">
-                      <Trash2 className="w-3.5 h-3.5" />
+                    <button onClick={() => setConfirmDeleteId(c.id)} className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-semantic-red-light rounded-xl text-text-tertiary hover:text-semantic-red transition-colors" title="Hapus" aria-label="Hapus catatan">
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                   <p className="text-[13px] text-text-secondary leading-relaxed">{c.content}</p>

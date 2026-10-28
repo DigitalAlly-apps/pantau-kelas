@@ -79,7 +79,7 @@ export function SetelanPage() {
             placeholder="Contoh: Pak Budi / Bu Sari"
             className="input-soft flex-1"
           />
-          <button onClick={saveNama} className="btn-soft btn-primary-soft px-4 py-2 text-sm">
+          <button onClick={saveNama} className="btn-soft btn-primary-soft px-4 py-2 text-sm min-h-[44px] flex items-center justify-center">
             Simpan
           </button>
         </div>
@@ -193,7 +193,7 @@ export function SetelanPage() {
                 <div className="flex flex-col sm:flex-row bg-bg-2 rounded-xl p-1 gap-1">
                   {(['ganjil', 'genap'] as const).map(p => (
                     <button key={p} onClick={() => handleSemesterChange({ semester: p })}
-                      className={`flex-1 py-1.5 px-2 text-[12px] font-semibold rounded-lg transition-all capitalize ${
+                      className={`flex-1 py-1.5 px-2 text-[12px] font-semibold rounded-lg transition-all capitalize min-h-[44px] flex items-center justify-center ${
                         semester.semester === p ? 'bg-surface shadow-soft text-foreground' : 'text-text-tertiary hover:text-text-secondary'
                       }`}>
                       {p}
@@ -274,7 +274,7 @@ export function SetelanPage() {
               <p className="text-[12px] text-text-tertiary">Pasang di home screen HP</p>
             </div>
           </div>
-          <button onClick={() => setShowInstall(!showInstall)} className="btn-soft btn-secondary-soft text-[12px] py-2 px-3">
+          <button onClick={() => setShowInstall(!showInstall)} className="btn-soft btn-secondary-soft text-[12px] py-2 px-3 min-h-[44px] flex items-center justify-center">
             Cara Install
           </button>
         </div>
@@ -338,14 +338,14 @@ export function SetelanPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowResetDialog(false)}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-border bg-bg-2 text-text-secondary hover:bg-border transition-colors"
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-border bg-bg-2 text-text-secondary hover:bg-border transition-colors min-h-[44px] flex items-center justify-center"
               >
                 Batal
               </button>
               <button
                 disabled={resetInput !== 'RESET'}
                 onClick={() => { resetAll(); setShowResetDialog(false); setResetInput(''); }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors min-h-[44px] flex items-center justify-center"
               >
                 Hapus Semua
               </button>

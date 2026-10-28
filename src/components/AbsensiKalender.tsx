@@ -136,16 +136,18 @@ export function AbsensiKalender({ onSelectDate, selectedDate }: Props) {
       <div className="flex items-center justify-between">
         <button
           onClick={prevMonth}
-          className="w-8 h-8 rounded-lg hover:bg-bg-2 flex items-center justify-center text-text-secondary hover:text-foreground transition-colors"
+          aria-label="Bulan sebelumnya"
+          className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl hover:bg-bg-2 active:bg-bg-3 flex items-center justify-center text-text-secondary hover:text-foreground transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
         <span className="text-[13px] font-bold text-foreground capitalize">{monthLabel}</span>
         <button
           onClick={nextMonth}
-          className="w-8 h-8 rounded-lg hover:bg-bg-2 flex items-center justify-center text-text-secondary hover:text-foreground transition-colors"
+          aria-label="Bulan berikutnya"
+          className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl hover:bg-bg-2 active:bg-bg-3 flex items-center justify-center text-text-secondary hover:text-foreground transition-colors"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
