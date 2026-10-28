@@ -9,7 +9,6 @@ import { SetelanPage } from '@/pages/SetelanPage';
 import { LaporanRiwayatPage } from '@/pages/LaporanRiwayatPage';
 import { ActivityPage } from '@/pages/ActivityPage';
 import AuthPage from '@/pages/AuthPage';
-import { OnboardingWizard } from '@/components/OnboardingWizard';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 
 export function AppLayout() {
@@ -29,7 +28,6 @@ export function AppLayout() {
 
   return (
     <SidebarProvider>
-      <OnboardingWizard />
       <div className="app-frame-jurnal flex h-[100dvh] w-full overflow-hidden overscroll-none">
         <AppSidebar />
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
